@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { getDb, initDb } from "@/lib/db";
+import { loadStore, saveStore } from "@/lib/db";
 
 const ADMIN_PASSWORD = "1234@@Ff";
 const AUTH_COOKIE = "charty_admin";
@@ -64,56 +64,71 @@ export async function logoutAdmin() {
 
 export async function updateAdminData(formData: FormData) {
   await requireAuth();
-  initDb();
-  const db = getDb();
+  const store = loadStore();
 
-  const totalSurplus = toNumber(formData.get("total_surplus"));
-  const disksSold = toNumber(formData.get("disks_sold"));
-  const familiesSupported = toNumber(formData.get("families_supported"));
-  const projectsLaunched = toNumber(formData.get("projects_launched"));
-  const visitorsCount = toNumber(formData.get("visitors_count"));
-  const basePrice = toNumber(formData.get("base_price"));
-  const extraPrice = toNumber(formData.get("extra_price"));
-  const projectTitle = toText(formData.get("project_title"));
-  const salesPoints = toText(formData.get("sales_points"));
+  const totalSurplus = toNumber(
+    formData.get("total_surplus"),
+    store.settings.total_surplus,
+  );
+  const disksSold = toNumber(
+    formData.get("disks_sold"),
+    store.settings.disks_sold,
+  );
+  const familiesSupported = toNumber(
+    formData.get("families_supported"),
+    store.settings.families_supported,
+  );
+  const projectsLaunched = toNumber(
+    formData.get("projects_launched"),
+    store.settings.projects_launched,
+  );
+  const visitorsCount = toNumber(
+    formData.get("visitors_count"),
+    store.settings.visitors_count,
+  );
+  const basePrice = toNumber(
+    formData.get("base_price"),
+    store.settings.base_price,
+  );
+  const extraPrice = toNumber(
+    formData.get("extra_price"),
+    store.settings.extra_price,
+  );
+  const projectTitle = toText(
+    formData.get("project_title"),
+    store.settings.project_title,
+  );
+  const salesPoints = toText(
+    formData.get("sales_points"),
+    store.settings.sales_points,
+  );
   const progressPercent = Math.min(
     100,
-    Math.max(0, toNumber(formData.get("progress_percent"))),
+    Math.max(
+      0,
+      toNumber(formData.get("progress_percent"), store.settings.progress_percent),
+    ),
   );
-  const remainingAmount = toNumber(formData.get("remaining_amount"));
+  const remainingAmount = toNumber(
+    formData.get("remaining_amount"),
+    store.settings.remaining_amount,
+  );
 
-  db.prepare(
-    `
-    UPDATE settings
-    SET
-      total_surplus = ?,
-      disks_sold = ?,
-      families_supported = ?,
-      projects_launched = ?,
-      visitors_count = ?,
-      base_price = ?,
-      extra_price = ?,
-      project_title = ?,
-      progress_percent = ?,
-      remaining_amount = ?,
-      sales_points = ?,
-      updated_at = ?
-    WHERE id = 1
-  `,
-  ).run(
-    totalSurplus,
-    disksSold,
-    familiesSupported,
-    projectsLaunched,
-    visitorsCount,
-    basePrice,
-    extraPrice,
-    projectTitle || "مشروع جديد قيد الإطلاق",
-    progressPercent,
-    remainingAmount,
-    salesPoints,
-    new Date().toISOString(),
-  );
+  store.settings = {
+    ...store.settings,
+    total_surplus: totalSurplus,
+    disks_sold: disksSold,
+    families_supported: familiesSupported,
+    projects_launched: projectsLaunched,
+    visitors_count: visitorsCount,
+    base_price: basePrice,
+    extra_price: extraPrice,
+    project_title: projectTitle || "مشروع جديد قيد الإطلاق",
+    progress_percent: progressPercent,
+    remaining_amount: remainingAmount,
+    sales_points: salesPoints,
+    updated_at: new Date().toISOString(),
+  };
 
   const storyIds = formData
     .getAll("story_id")
@@ -121,29 +136,34 @@ export async function updateAdminData(formData: FormData) {
     .filter((value) => Number.isFinite(value));
 
   if (storyIds.length > 0) {
-    const updateStory = db.prepare(
-      `
-      UPDATE stories
-      SET title = ?, description = ?, image_url = ?
-      WHERE id = ?
-    `,
-    );
-
-    for (const id of storyIds) {
-      const title = toText(formData.get(`story_title_${id}`), "قصة جديدة");
+    const ids = new Set(storyIds);
+    store.stories = store.stories.map((story) => {
+      if (!ids.has(story.id)) {
+        return story;
+      }
+      const title = toText(
+        formData.get(`story_title_${story.id}`),
+        story.title || "قصة جديدة",
+      );
       const description = toText(
-        formData.get(`story_description_${id}`),
-        "تفاصيل المشروع ستضاف قريباً.",
+        formData.get(`story_description_${story.id}`),
+        story.description || "تفاصيل المشروع ستضاف قريباً.",
       );
       const imageUrl = toText(
-        formData.get(`story_image_${id}`),
-        "/place.png",
+        formData.get(`story_image_${story.id}`),
+        story.image_url || "/place.png",
       );
 
-      updateStory.run(title, description, imageUrl, id);
-    }
+      return {
+        ...story,
+        title,
+        description,
+        image_url: imageUrl,
+      };
+    });
   }
 
+  saveStore(store);
   revalidatePath("/");
   revalidatePath("/admin");
   redirect("/admin?saved=1");
@@ -151,27 +171,26 @@ export async function updateAdminData(formData: FormData) {
 
 export async function addStory() {
   await requireAuth();
-  initDb();
-  const db = getDb();
+  const store = loadStore();
 
-  const nextPosition = (
-    db
-      .prepare("SELECT COALESCE(MAX(position), 0) + 1 as nextPosition FROM stories")
-      .get() as { nextPosition: number }
-  ).nextPosition;
-
-  db.prepare(
-    `
-    INSERT INTO stories (title, description, image_url, position)
-    VALUES (?, ?, ?, ?)
-  `,
-  ).run(
-    "قصة جديدة",
-    "تفاصيل المشروع ستضاف قريباً.",
-    "/place.png",
-    nextPosition,
+  const nextId = store.stories.reduce(
+    (maxId, story) => Math.max(maxId, story.id),
+    0,
+  );
+  const nextPosition = store.stories.reduce(
+    (maxPosition, story) => Math.max(maxPosition, story.position),
+    0,
   );
 
+  store.stories.push({
+    id: nextId + 1,
+    title: "قصة جديدة",
+    description: "تفاصيل المشروع ستضاف قريباً.",
+    image_url: "/place.png",
+    position: nextPosition + 1,
+  });
+
+  saveStore(store);
   revalidatePath("/");
   revalidatePath("/admin");
   redirect("/admin?added=1");
@@ -179,25 +198,18 @@ export async function addStory() {
 
 export async function deleteStory(storyId: number) {
   await requireAuth();
-  initDb();
-  const db = getDb();
+  const store = loadStore();
 
   if (!Number.isFinite(storyId)) {
     redirect("/admin");
   }
 
-  db.prepare("DELETE FROM stories WHERE id = ?").run(storyId);
+  store.stories = store.stories.filter((story) => story.id !== storyId);
+  store.stories = store.stories
+    .sort((first, second) => first.position - second.position)
+    .map((story, index) => ({ ...story, position: index + 1 }));
 
-  const remainingStories = db
-    .prepare("SELECT id FROM stories ORDER BY position ASC")
-    .all() as { id: number }[];
-  const updatePosition = db.prepare(
-    "UPDATE stories SET position = ? WHERE id = ?",
-  );
-  remainingStories.forEach((story, index) => {
-    updatePosition.run(index + 1, story.id);
-  });
-
+  saveStore(store);
   revalidatePath("/");
   revalidatePath("/admin");
   redirect("/admin?deleted=1");

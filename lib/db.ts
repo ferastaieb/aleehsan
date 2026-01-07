@@ -1,181 +1,186 @@
 import "server-only";
 
-import Database from "better-sqlite3";
 import fs from "fs";
 import path from "path";
 
-let db: Database.Database | null = null;
-const dbPath = path.join(process.cwd(), "data", "charty.db");
+import type { Settings, Store, Story } from "./types";
 
-function openDb() {
-  if (db) {
-    return db;
+const storePath = path.join(process.cwd(), "data", "store.json");
+const defaultSalesPoints =
+  "دمشق - سوق الحميدية\nحلب - السبع بحرات\nحمص - شارع الدبلان";
+
+const defaultStories: Story[] = [
+  {
+    id: 1,
+    title: "ماكينة خياطة",
+    description: "عائلة أم أحمد بدأت مشروع تفصيل منزلي.",
+    image_url: "/place.png",
+    position: 1,
+  },
+  {
+    id: 2,
+    title: "عربة طعام",
+    description: "الشاب خالد يعيل إخوته الآن.",
+    image_url: "/place.png",
+    position: 2,
+  },
+  {
+    id: 3,
+    title: "أدوات زراعية",
+    description: "مشروع زراعة منزلية لعائلة متعففة.",
+    image_url: "/place.png",
+    position: 3,
+  },
+];
+
+const defaultSettings: Settings = {
+  id: 1,
+  total_surplus: 15450,
+  disks_sold: 5200,
+  families_supported: 12,
+  projects_launched: 8,
+  visitors_count: 0,
+  base_price: 12,
+  extra_price: 1000,
+  project_title: "شراء فرن منزلي للأرملة (س)",
+  progress_percent: 70,
+  remaining_amount: 300,
+  sales_points: defaultSalesPoints,
+  updated_at: new Date().toISOString(),
+};
+
+const defaultStore: Store = {
+  settings: defaultSettings,
+  stories: defaultStories,
+};
+
+function readStoreFile() {
+  if (!fs.existsSync(storePath)) {
+    return null;
   }
-  fs.mkdirSync(path.dirname(dbPath), { recursive: true });
-  db = new Database(dbPath);
-  db.pragma("journal_mode = WAL");
-  return db;
+  try {
+    const raw = fs.readFileSync(storePath, "utf8");
+    return JSON.parse(raw) as Store;
+  } catch {
+    return null;
+  }
 }
 
-export function initDb() {
-  const database = openDb();
-  database.exec(`
-    CREATE TABLE IF NOT EXISTS settings (
-      id INTEGER PRIMARY KEY CHECK (id = 1),
-      total_surplus INTEGER NOT NULL,
-      disks_sold INTEGER NOT NULL,
-      families_supported INTEGER NOT NULL,
-      projects_launched INTEGER NOT NULL,
-      visitors_count INTEGER NOT NULL,
-      base_price INTEGER NOT NULL,
-      extra_price INTEGER NOT NULL,
-      project_title TEXT NOT NULL,
-      progress_percent INTEGER NOT NULL,
-      remaining_amount INTEGER NOT NULL,
-      sales_points TEXT NOT NULL,
-      updated_at TEXT NOT NULL
-    );
-  `);
-  database.exec(`
-    CREATE TABLE IF NOT EXISTS stories (
-      id INTEGER PRIMARY KEY,
-      title TEXT NOT NULL,
-      description TEXT NOT NULL,
-      image_url TEXT NOT NULL,
-      position INTEGER NOT NULL
-    );
-  `);
-
-  const settingsColumns = database
-    .prepare("PRAGMA table_info(settings)")
-    .all() as { name: string }[];
-  const hasSalesPoints = settingsColumns.some(
-    (column) => column.name === "sales_points",
-  );
-  if (!hasSalesPoints) {
-    database.exec(
-      "ALTER TABLE settings ADD COLUMN sales_points TEXT NOT NULL DEFAULT ''",
-    );
-  }
-  const hasVisitorsCount = settingsColumns.some(
-    (column) => column.name === "visitors_count",
-  );
-  if (!hasVisitorsCount) {
-    database.exec(
-      "ALTER TABLE settings ADD COLUMN visitors_count INTEGER NOT NULL DEFAULT 0",
-    );
-  }
-
-  const defaultSalesPoints =
-    "دمشق - سوق الحميدية\nحلب - السبع بحرات\nحمص - شارع الدبلان";
-
-  const settingsCount = database
-    .prepare("SELECT COUNT(*) as count FROM settings")
-    .get() as { count: number };
-  if (settingsCount.count === 0) {
-    database
-      .prepare(
-        `
-        INSERT INTO settings (
-          id,
-          total_surplus,
-          disks_sold,
-          families_supported,
-          projects_launched,
-          visitors_count,
-          base_price,
-          extra_price,
-          project_title,
-          progress_percent,
-          remaining_amount,
-          sales_points,
-          updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `,
-      )
-      .run(
-        1,
-        15450,
-        5200,
-        12,
-        8,
-        0,
-        12,
-        1000,
-        "شراء فرن منزلي للأرملة (س)",
-        70,
-        300,
-        defaultSalesPoints,
-        new Date().toISOString(),
-      );
-  }
-
-  database
-    .prepare(
-      `
-      UPDATE settings
-      SET extra_price = ?, updated_at = ?
-      WHERE id = 1 AND extra_price = 5
-    `,
-    )
-    .run(1000, new Date().toISOString());
-
-  database
-    .prepare(
-      `
-      UPDATE settings
-      SET sales_points = ?
-      WHERE id = 1 AND (sales_points IS NULL OR sales_points = '')
-    `,
-    )
-    .run(defaultSalesPoints);
-
-  const storyCount = database
-    .prepare("SELECT COUNT(*) as count FROM stories")
-    .get() as { count: number };
-  if (storyCount.count === 0) {
-    const insertStory = database.prepare(
-      `
-      INSERT INTO stories (id, title, description, image_url, position)
-      VALUES (?, ?, ?, ?, ?)
-    `,
-    );
-    insertStory.run(
-      1,
-      "ماكينة خياطة",
-      "عائلة أم أحمد بدأت مشروع تفصيل منزلي.",
-      "/place.png",
-      1,
-    );
-    insertStory.run(
-      2,
-      "عربة طعام",
-      "الشاب خالد يعيل إخوته الآن.",
-      "/place.png",
-      2,
-    );
-    insertStory.run(
-      3,
-      "أدوات زراعية",
-      "مشروع زراعة منزلية لعائلة متعففة.",
-      "/place.png",
-      3,
-    );
-  }
-
-  database
-    .prepare(
-      `
-      UPDATE stories
-      SET image_url = '/place.png'
-      WHERE image_url = '/placeholder.svg'
-    `,
-    )
-    .run();
-
-  return database;
+function writeStoreFile(store: Store) {
+  fs.mkdirSync(path.dirname(storePath), { recursive: true });
+  const tempPath = `${storePath}.tmp`;
+  fs.writeFileSync(tempPath, JSON.stringify(store, null, 2), "utf8");
+  fs.renameSync(tempPath, storePath);
 }
 
-export function getDb() {
-  return openDb();
+function normalizeStore(store: Store | null) {
+  let changed = false;
+  const safeNumber = (value: unknown, fallback: number) => {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed)) {
+      changed = true;
+      return fallback;
+    }
+    if (parsed !== value) {
+      changed = true;
+    }
+    return parsed;
+  };
+  const safeText = (value: unknown, fallback: string) => {
+    if (typeof value !== "string") {
+      changed = true;
+      return fallback;
+    }
+    const trimmed = value.trim();
+    if (!trimmed) {
+      changed = true;
+      return fallback;
+    }
+    return trimmed;
+  };
+
+  const settingsInput = store?.settings ?? ({} as Partial<Settings>);
+  const settings: Settings = {
+    id: 1,
+    total_surplus: safeNumber(
+      settingsInput.total_surplus,
+      defaultSettings.total_surplus,
+    ),
+    disks_sold: safeNumber(settingsInput.disks_sold, defaultSettings.disks_sold),
+    families_supported: safeNumber(
+      settingsInput.families_supported,
+      defaultSettings.families_supported,
+    ),
+    projects_launched: safeNumber(
+      settingsInput.projects_launched,
+      defaultSettings.projects_launched,
+    ),
+    visitors_count: safeNumber(
+      settingsInput.visitors_count,
+      defaultSettings.visitors_count,
+    ),
+    base_price: safeNumber(settingsInput.base_price, defaultSettings.base_price),
+    extra_price: safeNumber(
+      settingsInput.extra_price,
+      defaultSettings.extra_price,
+    ),
+    project_title: safeText(
+      settingsInput.project_title,
+      defaultSettings.project_title,
+    ),
+    progress_percent: safeNumber(
+      settingsInput.progress_percent,
+      defaultSettings.progress_percent,
+    ),
+    remaining_amount: safeNumber(
+      settingsInput.remaining_amount,
+      defaultSettings.remaining_amount,
+    ),
+    sales_points: safeText(
+      settingsInput.sales_points,
+      defaultSettings.sales_points,
+    ),
+    updated_at: safeText(
+      settingsInput.updated_at,
+      defaultSettings.updated_at,
+    ),
+  };
+
+  const storiesInput = Array.isArray(store?.stories)
+    ? store?.stories
+    : defaultStories;
+  const normalizedStories = storiesInput.map((story, index) => {
+    const fallback = defaultStories[index];
+    return {
+      id: safeNumber(story?.id, fallback?.id ?? index + 1),
+      title: safeText(story?.title, fallback?.title ?? "قصة جديدة"),
+      description: safeText(
+        story?.description,
+        fallback?.description ?? "تفاصيل المشروع ستضاف قريباً.",
+      ),
+      image_url: safeText(story?.image_url, "/place.png"),
+      position: safeNumber(story?.position, index + 1),
+    };
+  });
+
+  normalizedStories.sort((first, second) => first.position - second.position);
+  const stories = normalizedStories.map((story, index) => ({
+    ...story,
+    position: index + 1,
+  }));
+
+  return { store: { settings, stories }, changed };
+}
+
+export function loadStore(): Store {
+  const raw = readStoreFile();
+  const { store, changed } = normalizeStore(raw);
+  if (!raw || changed) {
+    writeStoreFile(store);
+  }
+  return store;
+}
+
+export function saveStore(store: Store) {
+  writeStoreFile(store);
 }

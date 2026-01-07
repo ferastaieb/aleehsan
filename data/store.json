@@ -1,0 +1,40 @@
+{
+  "settings": {
+    "id": 1,
+    "total_surplus": 15450,
+    "disks_sold": 5200,
+    "families_supported": 12,
+    "projects_launched": 8,
+    "visitors_count": 0,
+    "base_price": 12,
+    "extra_price": 1000,
+    "project_title": "شراء فرن منزلي للأرملة (س)",
+    "progress_percent": 70,
+    "remaining_amount": 300,
+    "sales_points": "دمشق - سوق الحميدية\nحلب - السبع بحرات\nحمص - شارع الدبلان",
+    "updated_at": "2026-01-07T00:00:00.000Z"
+  },
+  "stories": [
+    {
+      "id": 1,
+      "title": "ماكينة خياطة",
+      "description": "عائلة أم أحمد بدأت مشروع تفصيل منزلي.",
+      "image_url": "/place.png",
+      "position": 1
+    },
+    {
+      "id": 2,
+      "title": "عربة طعام",
+      "description": "الشاب خالد يعيل إخوته الآن.",
+      "image_url": "/place.png",
+      "position": 2
+    },
+    {
+      "id": 3,
+      "title": "أدوات زراعية",
+      "description": "مشروع زراعة منزلية لعائلة متعففة.",
+      "image_url": "/place.png",
+      "position": 3
+    }
+  ]
+}

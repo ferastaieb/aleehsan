@@ -20,8 +20,9 @@
 # production
 /build
 
-# sqlite
-/data
+# data
+/data/*.db
+/data/*.db-*
 
 # misc
 .DS_Store
