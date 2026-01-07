@@ -17,6 +17,9 @@ const tajawal = Tajawal({
 export const metadata: Metadata = {
   title: "الإحسان | لوحة الأثر",
   description: "لوحة شفافة لعرض أثر تبرعات قرص المحبة ومشاريع التمكين.",
+  icons: {
+    icon: "/ehsan.svg",
+  },
 };
 
 export default function RootLayout({

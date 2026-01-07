@@ -90,7 +90,7 @@ export function initDb() {
         12,
         8,
         12,
-        5,
+        1000,
         "شراء فرن منزلي للأرملة (س)",
         70,
         300,
@@ -98,6 +98,16 @@ export function initDb() {
         new Date().toISOString(),
       );
   }
+
+  database
+    .prepare(
+      `
+      UPDATE settings
+      SET extra_price = ?, updated_at = ?
+      WHERE id = 1 AND extra_price = 5
+    `,
+    )
+    .run(1000, new Date().toISOString());
 
   database
     .prepare(

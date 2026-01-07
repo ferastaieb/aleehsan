@@ -136,7 +136,7 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
                 />
               </label>
               <label className="flex flex-col gap-2 text-sm">
-                أي مبلغ إضافي (100% لدعم المشاريع)
+                أي مبلغ إضافي (جميعه يذهب لدعم المشاريع)
                 <input
                   name="extra_price"
                   type="number"

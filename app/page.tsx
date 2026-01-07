@@ -2,6 +2,7 @@
 import type { CSSProperties, ReactNode } from "react";
 
 import { getDashboardData } from "@/lib/data";
+import FireworksIntro from "@/components/FireworksIntro";
 import SalesPointsModal from "@/components/SalesPointsModal";
 
 export const dynamic = "force-dynamic";
@@ -36,7 +37,6 @@ export default function Home() {
     ? Math.round((settings.base_price / totalPrice) * 100)
     : 0;
   const safeBase = Math.min(100, Math.max(0, basePercent));
-  const extraPercent = hasPrice ? Math.max(0, 100 - safeBase) : 0;
   const progress = Math.min(100, Math.max(0, settings.progress_percent));
 
   const pieStyle: CSSProperties = hasPrice
@@ -156,6 +156,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-brand-ivory text-brand-ink">
+      <FireworksIntro />
       <header className="relative overflow-hidden bg-brand-dark text-white">
         <div className="pointer-events-none absolute -left-32 top-10 h-72 w-72 rounded-full bg-brand-lime/20 blur-3xl" />
         <div className="pointer-events-none absolute -right-20 -top-10 h-60 w-60 rounded-full bg-white/10 blur-3xl" />
@@ -163,7 +164,7 @@ export default function Home() {
           <img
             src="/logo.png"
             alt="الإحسان"
-            className="h-28 w-auto sm:h-32 md:h-40 lg:h-48"
+            className="h-36 w-auto sm:h-44 md:h-56 lg:h-72"
           />
           <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-5 py-2 text-sm">
             <span className="text-white/60">مبادرة الأثر الشفاف</span>
@@ -216,8 +217,9 @@ export default function Home() {
                 لدعم المشاريع.
               </p>
               <div className="rounded-2xl bg-brand-ivory p-4 text-sm text-brand-dark/80">
-                أمثلة عن مشاريع قادمة: تجهيز فرن منزلي، شراء عربة قهوة متنقلة،
-                أدوات زراعية لحدائق منزلية، ومعدات صيانة خفيفة للأسر المنتجة.
+                نحن لا نوزع المال كإعانات تنتهي باستهلاكها، بل نشتري معدات
+                وأدوات (ماكينات خياطة، بسطات، أدوات صيانة) للعائلات ليعملوا
+                ويعيلوا أنفسهم.
               </div>
               <div className="grid gap-3 text-sm">
                 <div className="flex items-center justify-between rounded-xl border border-brand-sand bg-white px-4 py-3">
@@ -230,11 +232,11 @@ export default function Home() {
                   <div className="flex flex-col">
                     <span>أي مبلغ إضافي</span>
                     <span className="text-xs text-brand-dark/60">
-                      100% لدعم المشاريع
+                      جميعه يذهب لدعم المشاريع
                     </span>
                   </div>
                   <span className="font-display text-lg text-brand-gold">
-                    {formatter.format(settings.extra_price)} ليرة
+                    {formatter.format(settings.extra_price)} ليرة مثلا
                   </span>
                 </div>
               </div>
@@ -268,8 +270,8 @@ export default function Home() {
                     <span className="h-3 w-3 rounded-full bg-brand-lime" />
                     <span>التمكين المباشر</span>
                   </div>
-                  <span className="font-display text-base">
-                    {extraPercent}%
+                  <span className="text-xs text-brand-dark/70">
+                    جميع ما تدفعه فوق سعر التكلفة
                   </span>
                 </div>
               </div>
