@@ -5,7 +5,21 @@ import path from "path";
 
 import type { Settings, Store, Story } from "./types";
 
-const storePath = path.join(process.cwd(), "data", "store.json");
+const projectDataDir = path.join(process.cwd(), "data");
+const projectStorePath = path.join(projectDataDir, "store.json");
+const runtimeDataDir = path.join(process.env.TMPDIR ?? "/tmp", "charty");
+const runtimeStorePath = path.join(runtimeDataDir, "store.json");
+
+function getWritableStorePath() {
+  try {
+    fs.accessSync(projectDataDir, fs.constants.W_OK);
+    return projectStorePath;
+  } catch {
+    return runtimeStorePath;
+  }
+}
+
+const writableStorePath = getWritableStorePath();
 const defaultSalesPoints =
   "دمشق - سوق الحميدية\nحلب - السبع بحرات\nحمص - شارع الدبلان";
 
@@ -55,11 +69,14 @@ const defaultStore: Store = {
 };
 
 function readStoreFile() {
-  if (!fs.existsSync(storePath)) {
+  const preferredPath = fs.existsSync(runtimeStorePath)
+    ? runtimeStorePath
+    : projectStorePath;
+  if (!fs.existsSync(preferredPath)) {
     return null;
   }
   try {
-    const raw = fs.readFileSync(storePath, "utf8");
+    const raw = fs.readFileSync(preferredPath, "utf8");
     return JSON.parse(raw) as Store;
   } catch {
     return null;
@@ -67,10 +84,15 @@ function readStoreFile() {
 }
 
 function writeStoreFile(store: Store) {
-  fs.mkdirSync(path.dirname(storePath), { recursive: true });
-  const tempPath = `${storePath}.tmp`;
-  fs.writeFileSync(tempPath, JSON.stringify(store, null, 2), "utf8");
-  fs.renameSync(tempPath, storePath);
+  const targetPath = writableStorePath;
+  try {
+    fs.mkdirSync(path.dirname(targetPath), { recursive: true });
+    const tempPath = `${targetPath}.tmp`;
+    fs.writeFileSync(tempPath, JSON.stringify(store, null, 2), "utf8");
+    fs.renameSync(tempPath, targetPath);
+  } catch (error) {
+    console.error("Failed to write store.json", error);
+  }
 }
 
 function normalizeStore(store: Store | null) {
