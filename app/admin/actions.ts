@@ -71,6 +71,7 @@ export async function updateAdminData(formData: FormData) {
   const disksSold = toNumber(formData.get("disks_sold"));
   const familiesSupported = toNumber(formData.get("families_supported"));
   const projectsLaunched = toNumber(formData.get("projects_launched"));
+  const visitorsCount = toNumber(formData.get("visitors_count"));
   const basePrice = toNumber(formData.get("base_price"));
   const extraPrice = toNumber(formData.get("extra_price"));
   const projectTitle = toText(formData.get("project_title"));
@@ -89,6 +90,7 @@ export async function updateAdminData(formData: FormData) {
       disks_sold = ?,
       families_supported = ?,
       projects_launched = ?,
+      visitors_count = ?,
       base_price = ?,
       extra_price = ?,
       project_title = ?,
@@ -103,6 +105,7 @@ export async function updateAdminData(formData: FormData) {
     disksSold,
     familiesSupported,
     projectsLaunched,
+    visitorsCount,
     basePrice,
     extraPrice,
     projectTitle || "مشروع جديد قيد الإطلاق",

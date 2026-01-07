@@ -156,6 +156,16 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
                 />
               </label>
               <label className="flex flex-col gap-2 text-sm">
+                عدد الزوار
+                <input
+                  name="visitors_count"
+                  type="number"
+                  min="0"
+                  defaultValue={settings.visitors_count}
+                  className="rounded-xl border border-brand-sand bg-brand-ivory px-4 py-2"
+                />
+              </label>
+              <label className="flex flex-col gap-2 text-sm">
                 عدد الأقراص المُباعة
                 <input
                   name="disks_sold"

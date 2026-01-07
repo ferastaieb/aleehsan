@@ -8,6 +8,7 @@ export type Settings = {
   disks_sold: number;
   families_supported: number;
   projects_launched: number;
+  visitors_count: number;
   base_price: number;
   extra_price: number;
   project_title: string;
@@ -25,9 +26,22 @@ export type Story = {
   position: number;
 };
 
-export function getDashboardData() {
+type DashboardOptions = {
+  incrementVisitors?: boolean;
+};
+
+export function getDashboardData(options: DashboardOptions = {}) {
   initDb();
   const db = getDb();
+  if (options.incrementVisitors) {
+    db.prepare(
+      `
+      UPDATE settings
+      SET visitors_count = visitors_count + 1
+      WHERE id = 1
+    `,
+    ).run();
+  }
   const settings = db
     .prepare(
       `
@@ -37,6 +51,7 @@ export function getDashboardData() {
         disks_sold,
         families_supported,
         projects_launched,
+        visitors_count,
         base_price,
         extra_price,
         project_title,

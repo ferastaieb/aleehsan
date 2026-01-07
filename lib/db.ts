@@ -26,6 +26,7 @@ export function initDb() {
       disks_sold INTEGER NOT NULL,
       families_supported INTEGER NOT NULL,
       projects_launched INTEGER NOT NULL,
+      visitors_count INTEGER NOT NULL,
       base_price INTEGER NOT NULL,
       extra_price INTEGER NOT NULL,
       project_title TEXT NOT NULL,
@@ -56,6 +57,14 @@ export function initDb() {
       "ALTER TABLE settings ADD COLUMN sales_points TEXT NOT NULL DEFAULT ''",
     );
   }
+  const hasVisitorsCount = settingsColumns.some(
+    (column) => column.name === "visitors_count",
+  );
+  if (!hasVisitorsCount) {
+    database.exec(
+      "ALTER TABLE settings ADD COLUMN visitors_count INTEGER NOT NULL DEFAULT 0",
+    );
+  }
 
   const defaultSalesPoints =
     "دمشق - سوق الحميدية\nحلب - السبع بحرات\nحمص - شارع الدبلان";
@@ -73,6 +82,7 @@ export function initDb() {
           disks_sold,
           families_supported,
           projects_launched,
+          visitors_count,
           base_price,
           extra_price,
           project_title,
@@ -80,7 +90,7 @@ export function initDb() {
           remaining_amount,
           sales_points,
           updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
       )
       .run(
@@ -89,6 +99,7 @@ export function initDb() {
         5200,
         12,
         8,
+        0,
         12,
         1000,
         "شراء فرن منزلي للأرملة (س)",
