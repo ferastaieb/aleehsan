@@ -1,21 +1,84 @@
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
+import { cookies } from "next/headers";
 
 import { getDashboardData } from "@/lib/data";
 
-import { addStory, deleteStory, updateAdminData } from "./actions";
+import {
+  addStory,
+  deleteStory,
+  loginAdmin,
+  logoutAdmin,
+  updateAdminData,
+} from "./actions";
 
 export const dynamic = "force-dynamic";
 
 type AdminPageProps = {
   searchParams?: {
+    auth?: string;
     saved?: string;
     added?: string;
     deleted?: string;
   };
 };
 
-export default function AdminPage({ searchParams }: AdminPageProps) {
+export default async function AdminPage({ searchParams }: AdminPageProps) {
+  const cookieStore = await cookies();
+  const isAuthed = cookieStore.get("charty_admin")?.value === "ok";
+  const authFailed = searchParams?.auth === "0";
+
+  if (!isAuthed) {
+    return (
+      <div className="min-h-screen bg-brand-ivory text-brand-ink">
+        <header className="border-b border-brand-dark/10 bg-white/90 backdrop-blur-sm">
+          <div className="mx-auto flex max-w-5xl flex-col gap-4 px-6 py-8 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="text-sm text-brand-dark/60">لوحة الإدارة</p>
+              <h1 className="font-display text-2xl text-brand-dark">
+                تسجيل الدخول
+              </h1>
+            </div>
+            <Link
+              href="/"
+              className="text-sm text-brand-dark/70 underline decoration-brand-lime underline-offset-4"
+            >
+              العودة للواجهة الرئيسية
+            </Link>
+          </div>
+        </header>
+        <main className="mx-auto flex max-w-md flex-col gap-6 px-6 py-12">
+          {authFailed ? (
+            <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              كلمة المرور غير صحيحة.
+            </div>
+          ) : null}
+          <form
+            action={loginAdmin}
+            className="rounded-3xl bg-white p-6 shadow-[0_20px_50px_-35px_rgba(15,46,28,0.3)]"
+          >
+            <label className="flex flex-col gap-2 text-sm">
+              كلمة المرور
+              <input
+                name="password"
+                type="password"
+                autoComplete="current-password"
+                className="rounded-xl border border-brand-sand bg-brand-ivory px-4 py-2"
+                required
+              />
+            </label>
+            <button
+              type="submit"
+              className="mt-6 w-full rounded-full bg-brand-lime px-6 py-3 text-sm font-semibold text-brand-ink"
+            >
+              دخول
+            </button>
+          </form>
+        </main>
+      </div>
+    );
+  }
+
   const { settings, stories } = getDashboardData();
   const saved = searchParams?.saved === "1";
   const added = searchParams?.added === "1";
@@ -35,12 +98,22 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
               إدخال وتحديث المعلومات
             </h1>
           </div>
-          <Link
-            href="/"
-            className="text-sm text-brand-dark/70 underline decoration-brand-lime underline-offset-4"
-          >
-            العودة للواجهة الرئيسية
-          </Link>
+          <div className="flex items-center gap-4">
+            <Link
+              href="/"
+              className="text-sm text-brand-dark/70 underline decoration-brand-lime underline-offset-4"
+            >
+              العودة للواجهة الرئيسية
+            </Link>
+            <form action={logoutAdmin}>
+              <button
+                type="submit"
+                className="rounded-full border border-brand-dark/10 px-4 py-2 text-xs text-brand-dark"
+              >
+                تسجيل الخروج
+              </button>
+            </form>
+          </div>
         </div>
       </header>
 
@@ -246,9 +319,7 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
                       </span>
                       <button
                         type="submit"
-                        name="delete_story_id"
-                        value={story.id}
-                        formAction={deleteStory}
+                        formAction={deleteStory.bind(null, story.id)}
                         className="rounded-full border border-red-200 px-3 py-1 text-xs text-red-600 transition hover:bg-red-50"
                       >
                         حذف القصة

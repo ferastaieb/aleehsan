@@ -1,9 +1,14 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { getDb, initDb } from "@/lib/db";
+
+const ADMIN_PASSWORD = "1234@@Ff";
+const AUTH_COOKIE = "charty_admin";
+const AUTH_VALUE = "ok";
 
 function toNumber(value: FormDataEntryValue | null, fallback = 0) {
   const parsed = Number(value);
@@ -18,7 +23,47 @@ function toText(value: FormDataEntryValue | null, fallback = "") {
   return trimmed.length > 0 ? trimmed : fallback;
 }
 
+async function requireAuth() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get(AUTH_COOKIE)?.value;
+  if (token !== AUTH_VALUE) {
+    redirect("/admin?auth=0");
+  }
+}
+
+export async function loginAdmin(formData: FormData) {
+  const password = formData.get("password");
+  if (typeof password !== "string" || password !== ADMIN_PASSWORD) {
+    redirect("/admin?auth=0");
+  }
+
+  const cookieStore = await cookies();
+  cookieStore.set(AUTH_COOKIE, AUTH_VALUE, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: 60 * 60 * 24 * 7,
+  });
+
+  redirect("/admin");
+}
+
+export async function logoutAdmin() {
+  const cookieStore = await cookies();
+  cookieStore.set(AUTH_COOKIE, "", {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: 0,
+  });
+
+  redirect("/admin");
+}
+
 export async function updateAdminData(formData: FormData) {
+  await requireAuth();
   initDb();
   const db = getDb();
 
@@ -102,6 +147,7 @@ export async function updateAdminData(formData: FormData) {
 }
 
 export async function addStory() {
+  await requireAuth();
   initDb();
   const db = getDb();
 
@@ -128,11 +174,11 @@ export async function addStory() {
   redirect("/admin?added=1");
 }
 
-export async function deleteStory(formData: FormData) {
+export async function deleteStory(storyId: number) {
+  await requireAuth();
   initDb();
   const db = getDb();
 
-  const storyId = Number(formData.get("delete_story_id"));
   if (!Number.isFinite(storyId)) {
     redirect("/admin");
   }
