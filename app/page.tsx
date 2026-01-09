@@ -2,6 +2,7 @@
 import type { CSSProperties, ReactNode } from "react";
 
 import { getDashboardData } from "@/lib/data";
+import DonationCalculator from "@/components/DonationCalculator";
 import FireworksIntro from "@/components/FireworksIntro";
 import SalesPointsModal from "@/components/SalesPointsModal";
 
@@ -17,13 +18,13 @@ function StatCard({ label, value, icon }: StatCardProps) {
   return (
     <div className="flex h-full flex-col rounded-2xl bg-brand-dark p-5 text-white shadow-[0_18px_40px_-30px_rgba(15,46,28,0.7)]">
       <div className="flex items-center justify-between">
-        <div className="rounded-full bg-white/10 p-2 text-brand-lime">
+        <div className="rounded-full bg-white/10 p-2 text-white">
           {icon}
         </div>
         <span className="text-xs text-white/60">محدث الآن</span>
       </div>
-      <p className="mt-6 text-sm text-white/70">{label}</p>
-      <p className="mt-2 font-display text-3xl text-brand-lime">{value}</p>
+      <p className="mt-6 text-xs text-white/60">{label}</p>
+      <p className="mt-2 font-display text-4xl text-brand-lime">{value}</p>
     </div>
   );
 }
@@ -33,21 +34,7 @@ export default async function Home() {
     incrementVisitors: true,
   });
   const formatter = new Intl.NumberFormat("ar-SA");
-  const totalPrice = settings.base_price + settings.extra_price;
-  const hasPrice = totalPrice > 0;
-  const basePercent = hasPrice
-    ? Math.round((settings.base_price / totalPrice) * 100)
-    : 0;
-  const safeBase = Math.min(100, Math.max(0, basePercent));
   const progress = Math.min(100, Math.max(0, settings.progress_percent));
-
-  const pieStyle: CSSProperties = hasPrice
-    ? {
-        background: `conic-gradient(var(--color-brand-dark) 0 ${safeBase}%, var(--color-brand-lime) ${safeBase}% 100%)`,
-      }
-    : {
-        background: "conic-gradient(var(--color-brand-sand) 0 100%)",
-      };
 
   const progressStyle: CSSProperties = {
     width: `${progress}%`,
@@ -71,7 +58,7 @@ export default async function Home() {
   const projectsValue =
     settings.projects_launched === 1
       ? "مشروع واحد"
-      : `${formatter.format(settings.projects_launched)} مشاريع`;
+      : `${formatter.format(settings.projects_launched)} مشروع`;
 
   const stats = [
     {
@@ -175,7 +162,7 @@ export default async function Home() {
             شكراً لأنك شريك في الخير
           </h1>
           <p className="max-w-2xl text-lg text-white/80">
-            بشراؤك لقرص المحبة، أنت لم تطعم نفسك فقط، بل بنيت مستقبلاً لغيرك.
+            بشرائك لقرص المحبة، أنت لم تُمتِّع نفسك فقط، بل بنيت مستقبلاً لغيرك.
           </p>
         </div>
       </header>
@@ -208,77 +195,10 @@ export default async function Home() {
         </section>
 
         <section className="mx-auto mt-12 max-w-6xl px-6">
-          <div className="grid gap-8 rounded-3xl bg-white p-8 shadow-[0_20px_55px_-35px_rgba(15,46,28,0.35)] lg:grid-cols-[1.1fr_0.9fr]">
-            <div className="flex flex-col gap-4">
-              <h2 className="font-display text-2xl text-brand-dark">
-                كيف يعمل نموذجنا؟
-              </h2>
-              <p className="text-sm text-brand-dark/70">
-                الشفافية المالية هي جوهر المبادرة، ويمكنك شراء القرص بسعر
-                التكلفة أو إضافة أي مبلغ تراه مناسباً فوق التكلفة، وجميعه يذهب
-                لدعم المشاريع.
-              </p>
-              <div className="rounded-2xl bg-brand-ivory p-4 text-sm text-brand-dark/80">
-                نحن لا نوزع المال كإعانات تنتهي باستهلاكها، بل نشتري معدات
-                وأدوات (ماكينات خياطة، بسطات، أدوات صيانة) للعائلات ليعملوا
-                ويعيلوا أنفسهم.
-              </div>
-              <div className="grid gap-3 text-sm">
-                <div className="flex items-center justify-between rounded-xl border border-brand-sand bg-white px-4 py-3">
-                  <span>سعر القرص الأساسي</span>
-                  <span className="font-display text-lg text-brand-dark">
-                    {formatter.format(settings.base_price)} ليرة
-                  </span>
-                </div>
-                <div className="flex items-center justify-between rounded-xl border border-brand-sand bg-white px-4 py-3">
-                  <div className="flex flex-col">
-                    <span>أي مبلغ إضافي</span>
-                    <span className="text-xs text-brand-dark/60">
-                      جميعه يذهب لدعم المشاريع
-                    </span>
-                  </div>
-                  <span className="font-display text-lg text-brand-gold">
-                    {formatter.format(settings.extra_price)} ليرة مثلا
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex flex-col items-center justify-center gap-6">
-              <div
-                className="relative h-56 w-56 rounded-full shadow-[0_18px_40px_-30px_rgba(15,46,28,0.5)]"
-                style={pieStyle}
-                aria-label="نسبة توزيع الأموال"
-              >
-                <div className="absolute inset-6 rounded-full bg-white" />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="rounded-full bg-brand-dark px-4 py-2 text-sm text-white">
-                    شفافية كاملة
-                  </div>
-                </div>
-              </div>
-              <div className="flex w-full flex-col gap-3 text-sm">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="h-3 w-3 rounded-full bg-brand-dark" />
-                    <span>التكلفة التشغيلية</span>
-                  </div>
-                  <span className="font-display text-base">
-                    {safeBase}%
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="h-3 w-3 rounded-full bg-brand-lime" />
-                    <span>التمكين المباشر</span>
-                  </div>
-                  <span className="text-xs text-brand-dark/70">
-                    جميع ما تدفعه فوق سعر التكلفة
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
+          <DonationCalculator
+            basePrice={settings.base_price}
+            defaultExtraPrice={settings.extra_price}
+          />
         </section>
 
         <section className="mx-auto mt-12 max-w-6xl px-6">

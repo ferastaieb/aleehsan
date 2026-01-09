@@ -18,10 +18,15 @@ const STORE_KEY = "STORE";
 const projectDataDir = path.join(process.cwd(), "data");
 const projectStorePath = path.join(projectDataDir, "store.json");
 
+const storeMode =
+  process.env.CHARTY_STORE_MODE ??
+  (process.env.NODE_ENV === "production" ? "dynamodb" : "local");
+const isLocalStore = storeMode === "local";
+
 const region =
   process.env.AWS_REGION ??
   process.env.AWS_DEFAULT_REGION ??
-  "us-east-1";
+  "me-south-1";
 
 const docClient = DynamoDBDocumentClient.from(
   new DynamoDBClient({ region }),
@@ -70,7 +75,7 @@ const defaultSettings: Settings = {
   updated_at: new Date().toISOString(),
 };
 
-function readSeedStoreFile(): Store | null {
+function readLocalStoreFile(): Store | null {
   if (!fs.existsSync(projectStorePath)) {
     return null;
   }
@@ -80,6 +85,11 @@ function readSeedStoreFile(): Store | null {
   } catch {
     return null;
   }
+}
+
+function writeLocalStoreFile(store: Store): void {
+  fs.mkdirSync(projectDataDir, { recursive: true });
+  fs.writeFileSync(projectStorePath, JSON.stringify(store, null, 2), "utf8");
 }
 
 async function readStoreItem(): Promise<Store | null> {
@@ -212,8 +222,17 @@ function normalizeStore(store: Store | null) {
 }
 
 export async function loadStore(): Promise<Store> {
+  if (isLocalStore) {
+    const seed = readLocalStoreFile();
+    const { store, changed } = normalizeStore(seed);
+    if (!seed || changed) {
+      writeLocalStoreFile(store);
+    }
+    return store;
+  }
+
   const raw = await readStoreItem();
-  const seed = raw ?? readSeedStoreFile();
+  const seed = raw ?? readLocalStoreFile();
   const { store, changed } = normalizeStore(seed);
   if (!raw || changed) {
     await writeStoreItem(store);
@@ -222,5 +241,9 @@ export async function loadStore(): Promise<Store> {
 }
 
 export async function saveStore(store: Store) {
+  if (isLocalStore) {
+    writeLocalStoreFile(store);
+    return;
+  }
   await writeStoreItem(store);
 }

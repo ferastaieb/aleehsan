@@ -204,12 +204,12 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
                 الشفافية المالية
               </h2>
               <p className="text-sm text-brand-dark/60">
-                أدخل سعر التكلفة والمبلغ الزائد الذي يذهب للتمكين.
+                أدخل سعر التكلفة والمبلغ الزائد الذي يذهب لدعم العائلات.
               </p>
             </div>
             <div className="grid gap-4 md:grid-cols-2">
               <label className="flex flex-col gap-2 text-sm">
-                سعر القرص الأساسي
+                سعر التكلفة (مواد فقط)
                 <input
                   name="base_price"
                   type="number"
@@ -219,7 +219,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
                 />
               </label>
               <label className="flex flex-col gap-2 text-sm">
-                أي مبلغ إضافي (جميعه يذهب لدعم المشاريع)
+                أي مبلغ إضافي (جميعه يذهب لدعم مشاريع العائلات)
                 <input
                   name="extra_price"
                   type="number"
