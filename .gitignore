@@ -20,6 +20,9 @@
 # production
 /build
 
+# cdk
+/cdk/
+
 # data
 /data/*.db
 /data/*.db-*

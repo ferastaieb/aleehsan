@@ -64,7 +64,7 @@ export async function logoutAdmin() {
 
 export async function updateAdminData(formData: FormData) {
   await requireAuth();
-  const store = loadStore();
+  const store = await loadStore();
 
   const totalSurplus = toNumber(
     formData.get("total_surplus"),
@@ -163,7 +163,7 @@ export async function updateAdminData(formData: FormData) {
     });
   }
 
-  saveStore(store);
+  await saveStore(store);
   revalidatePath("/");
   revalidatePath("/admin");
   redirect("/admin?saved=1");
@@ -171,7 +171,7 @@ export async function updateAdminData(formData: FormData) {
 
 export async function addStory() {
   await requireAuth();
-  const store = loadStore();
+  const store = await loadStore();
 
   const nextId = store.stories.reduce(
     (maxId, story) => Math.max(maxId, story.id),
@@ -190,7 +190,7 @@ export async function addStory() {
     position: nextPosition + 1,
   });
 
-  saveStore(store);
+  await saveStore(store);
   revalidatePath("/");
   revalidatePath("/admin");
   redirect("/admin?added=1");
@@ -198,7 +198,7 @@ export async function addStory() {
 
 export async function deleteStory(storyId: number) {
   await requireAuth();
-  const store = loadStore();
+  const store = await loadStore();
 
   if (!Number.isFinite(storyId)) {
     redirect("/admin");
@@ -209,7 +209,7 @@ export async function deleteStory(storyId: number) {
     .sort((first, second) => first.position - second.position)
     .map((story, index) => ({ ...story, position: index + 1 }));
 
-  saveStore(store);
+  await saveStore(store);
   revalidatePath("/");
   revalidatePath("/admin");
   redirect("/admin?deleted=1");

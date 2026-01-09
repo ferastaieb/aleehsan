@@ -3,23 +3,30 @@ import "server-only";
 import fs from "fs";
 import path from "path";
 
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import {
+  DynamoDBDocumentClient,
+  GetCommand,
+  PutCommand,
+} from "@aws-sdk/lib-dynamodb";
+
 import type { Settings, Store, Story } from "./types";
+
+const CHARTY_TABLE_NAME = "ChartyTable";
+const STORE_KEY = "STORE";
 
 const projectDataDir = path.join(process.cwd(), "data");
 const projectStorePath = path.join(projectDataDir, "store.json");
-const runtimeDataDir = path.join(process.env.TMPDIR ?? "/tmp", "charty");
-const runtimeStorePath = path.join(runtimeDataDir, "store.json");
 
-function getWritableStorePath() {
-  try {
-    fs.accessSync(projectDataDir, fs.constants.W_OK);
-    return projectStorePath;
-  } catch {
-    return runtimeStorePath;
-  }
-}
+const region =
+  process.env.AWS_REGION ??
+  process.env.AWS_DEFAULT_REGION ??
+  "us-east-1";
 
-const writableStorePath = getWritableStorePath();
+const docClient = DynamoDBDocumentClient.from(
+  new DynamoDBClient({ region }),
+  { marshallOptions: { removeUndefinedValues: true } },
+);
 const defaultSalesPoints =
   "دمشق - سوق الحميدية\nحلب - السبع بحرات\nحمص - شارع الدبلان";
 
@@ -63,36 +70,46 @@ const defaultSettings: Settings = {
   updated_at: new Date().toISOString(),
 };
 
-const defaultStore: Store = {
-  settings: defaultSettings,
-  stories: defaultStories,
-};
-
-function readStoreFile() {
-  const preferredPath = fs.existsSync(runtimeStorePath)
-    ? runtimeStorePath
-    : projectStorePath;
-  if (!fs.existsSync(preferredPath)) {
+function readSeedStoreFile(): Store | null {
+  if (!fs.existsSync(projectStorePath)) {
     return null;
   }
   try {
-    const raw = fs.readFileSync(preferredPath, "utf8");
+    const raw = fs.readFileSync(projectStorePath, "utf8");
     return JSON.parse(raw) as Store;
   } catch {
     return null;
   }
 }
 
-function writeStoreFile(store: Store) {
-  const targetPath = writableStorePath;
-  try {
-    fs.mkdirSync(path.dirname(targetPath), { recursive: true });
-    const tempPath = `${targetPath}.tmp`;
-    fs.writeFileSync(tempPath, JSON.stringify(store, null, 2), "utf8");
-    fs.renameSync(tempPath, targetPath);
-  } catch (error) {
-    console.error("Failed to write store.json", error);
+async function readStoreItem(): Promise<Store | null> {
+  const response = await docClient.send(
+    new GetCommand({
+      TableName: CHARTY_TABLE_NAME,
+      Key: { pk: STORE_KEY },
+    }),
+  );
+  if (!response.Item) {
+    return null;
   }
+  const item = response.Item as Partial<Store> & { pk?: string };
+  return {
+    settings: item.settings as Settings,
+    stories: item.stories as Story[],
+  };
+}
+
+async function writeStoreItem(store: Store): Promise<void> {
+  await docClient.send(
+    new PutCommand({
+      TableName: CHARTY_TABLE_NAME,
+      Item: {
+        pk: STORE_KEY,
+        settings: store.settings,
+        stories: store.stories,
+      },
+    }),
+  );
 }
 
 function normalizeStore(store: Store | null) {
@@ -194,15 +211,16 @@ function normalizeStore(store: Store | null) {
   return { store: { settings, stories }, changed };
 }
 
-export function loadStore(): Store {
-  const raw = readStoreFile();
-  const { store, changed } = normalizeStore(raw);
+export async function loadStore(): Promise<Store> {
+  const raw = await readStoreItem();
+  const seed = raw ?? readSeedStoreFile();
+  const { store, changed } = normalizeStore(seed);
   if (!raw || changed) {
-    writeStoreFile(store);
+    await writeStoreItem(store);
   }
   return store;
 }
 
-export function saveStore(store: Store) {
-  writeStoreFile(store);
+export async function saveStore(store: Store) {
+  await writeStoreItem(store);
 }

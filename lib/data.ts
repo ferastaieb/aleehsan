@@ -7,11 +7,11 @@ type DashboardOptions = {
   incrementVisitors?: boolean;
 };
 
-export function getDashboardData(options: DashboardOptions = {}) {
-  const store = loadStore();
+export async function getDashboardData(options: DashboardOptions = {}) {
+  const store = await loadStore();
   if (options.incrementVisitors) {
     store.settings.visitors_count += 1;
-    saveStore(store);
+    await saveStore(store);
   }
   const settings = store.settings as Settings;
   const stories = store.stories as Story[];

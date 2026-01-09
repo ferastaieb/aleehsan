@@ -28,8 +28,10 @@ function StatCard({ label, value, icon }: StatCardProps) {
   );
 }
 
-export default function Home() {
-  const { settings, stories } = getDashboardData({ incrementVisitors: true });
+export default async function Home() {
+  const { settings, stories } = await getDashboardData({
+    incrementVisitors: true,
+  });
   const formatter = new Intl.NumberFormat("ar-SA");
   const totalPrice = settings.base_price + settings.extra_price;
   const hasPrice = totalPrice > 0;

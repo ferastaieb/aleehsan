@@ -79,7 +79,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
     );
   }
 
-  const { settings, stories } = getDashboardData();
+  const { settings, stories } = await getDashboardData();
   const saved = searchParams?.saved === "1";
   const added = searchParams?.added === "1";
   const deleted = searchParams?.deleted === "1";
