@@ -197,7 +197,6 @@ export default async function Home() {
         <section className="mx-auto mt-12 max-w-6xl px-6">
           <DonationCalculator
             basePrice={settings.base_price}
-            defaultExtraPrice={settings.extra_price}
           />
         </section>
 

@@ -1,10 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 
 type DonationCalculatorProps = {
   basePrice: number;
-  defaultExtraPrice: number;
   currencyLabel?: string;
 };
 
@@ -12,37 +11,10 @@ const DEFAULT_CURRENCY_LABEL = "ليرة";
 
 export default function DonationCalculator({
   basePrice,
-  defaultExtraPrice,
   currencyLabel = DEFAULT_CURRENCY_LABEL,
 }: DonationCalculatorProps) {
   const formatter = useMemo(() => new Intl.NumberFormat("ar-SA"), []);
-  const initialExtraAmount =
-    Number.isFinite(defaultExtraPrice) && defaultExtraPrice > 0
-      ? String(defaultExtraPrice)
-      : "";
-  const placeholderAmount =
-    Number.isFinite(defaultExtraPrice) && defaultExtraPrice > 0
-      ? formatter.format(defaultExtraPrice)
-      : "1000";
-
-  const [extraAmount, setExtraAmount] = useState(initialExtraAmount);
-
-  const parsedExtra = Number(extraAmount);
-  const safeExtra =
-    Number.isFinite(parsedExtra) && parsedExtra >= 0 ? parsedExtra : 0;
-  const totalPrice = basePrice + safeExtra;
-  const basePercent =
-    totalPrice > 0 ? Math.round((basePrice / totalPrice) * 100) : 0;
-  const safeBase = Math.min(100, Math.max(0, basePercent));
-
-  const pieStyle =
-    totalPrice > 0
-      ? {
-          background: `conic-gradient(var(--color-brand-dark) 0 ${safeBase}%, var(--color-brand-lime) ${safeBase}% 100%)`,
-        }
-      : {
-          background: "conic-gradient(var(--color-brand-sand) 0 100%)",
-        };
+  const formattedBasePrice = formatter.format(basePrice);
 
   return (
     <div className="grid gap-8 rounded-3xl bg-white p-8 shadow-[0_20px_55px_-35px_rgba(15,46,28,0.35)] lg:grid-cols-[1.1fr_0.9fr]">
@@ -58,66 +30,61 @@ export default function DonationCalculator({
           نحن لا نوزع المال كإعانات تنتهي باستهلاكها، بل نشتري معدات وأدوات
           (ماكينات خياطة، بسطات، أدوات صيانة) للعائلات ليعملوا ويعيلوا أنفسهم.
         </div>
-        <div className="grid gap-3 text-sm">
-          <div className="flex items-center justify-between rounded-xl border border-brand-sand bg-white px-4 py-3">
-            <span>سعر التكلفة (مواد فقط)</span>
-            <span className="font-display text-lg text-brand-dark">
-              {formatter.format(basePrice)} {currencyLabel}
-            </span>
-          </div>
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-brand-sand bg-white px-4 py-3">
-            <div className="flex flex-col">
-              <span>أي مبلغ إضافي</span>
-              <span className="text-xs text-brand-dark/60">
-                يذهب 100% لدعم مشاريع العائلات
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <input
-                type="number"
-                min="0"
-                step="1"
-                value={extraAmount}
-                onChange={(event) => setExtraAmount(event.target.value)}
-                placeholder={`مثلاً ${placeholderAmount}`}
-                className="w-28 rounded-lg border border-brand-lime/60 bg-brand-ivory px-3 py-2 text-center font-display text-base text-brand-gold shadow-sm transition hover:border-brand-lime/80 focus:border-brand-lime focus:outline-none focus:ring-2 focus:ring-brand-lime/30"
-                aria-label="أدخل أي مبلغ إضافي"
-              />
-              <span className="text-xs text-brand-dark/60">{currencyLabel}</span>
-            </div>
-          </div>
-        </div>
       </div>
 
-      <div className="flex flex-col items-center justify-center gap-6">
-        <div
-          className="relative h-56 w-56 rounded-full shadow-[0_18px_40px_-30px_rgba(15,46,28,0.5)]"
-          style={pieStyle}
-          aria-label="نسبة توزيع الأموال"
-        >
-          <div className="absolute inset-6 rounded-full bg-white" />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="rounded-full bg-brand-dark px-4 py-2 text-sm text-white">
-              توزيع السعر
-            </div>
-          </div>
+      <div className="flex flex-col gap-4">
+        <div className="rounded-2xl border border-brand-sand bg-brand-ivory px-4 py-4">
+          <p className="text-sm text-brand-dark/60">سعر التكلفة (مواد فقط)</p>
+          <p className="mt-2 font-display text-3xl text-brand-dark">
+            {formattedBasePrice} {currencyLabel}
+          </p>
         </div>
-        <div className="flex w-full flex-col gap-3 text-sm">
+        <div className="rounded-2xl bg-brand-lime/15 p-4 text-sm text-brand-dark/80">
+          <p className="font-display text-lg text-brand-dark">
+            دعمك مفتوح بلا سقف
+          </p>
+          <p className="mt-2">
+            أي مبلغ تدفعه فوق سعر التكلفة يذهب 100% لدعم مشاريع العائلات، وكلما
+            زاد دعمك زادت فرصنا لإطلاق مشاريع أكثر.
+          </p>
+        </div>
+        <div className="rounded-2xl border border-brand-lime/40 bg-white p-4 text-sm text-brand-dark/80">
+          <p className="font-semibold text-brand-dark">
+            اختر دعماً سخياً قدر استطاعتك , دعمك الكبير يصنع فرقاً فورياً لعائلات
+            أكثر.
+          </p>
+        </div>
+        <div className="rounded-2xl border border-brand-sand bg-brand-ivory p-4 text-sm text-brand-dark/80">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="h-3 w-3 rounded-full bg-brand-dark" />
-              <span>سعر المواد الخام</span>
-            </div>
-            <span className="font-display text-base">{safeBase}%</span>
+            <p className="font-semibold text-brand-dark">أثر دعمك يتصاعد</p>
+            <span className="text-xs text-brand-dark/60">كل زيادة = أثر أكبر</span>
           </div>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="h-3 w-3 rounded-full bg-brand-lime" />
-              <span>دعمك للعائلات</span>
+          <div className="mt-4 flex items-end gap-3">
+            <div className="flex flex-1 flex-col items-center gap-2">
+              <div className="h-10 w-full rounded-2xl bg-brand-dark/40" />
+              <span className="text-xs text-brand-dark/60">أثر كريم</span>
             </div>
-            <span className="text-xs text-brand-dark/70">
-              جميع ما تدفعه فوق سعر التكلفة
-            </span>
+            <div className="flex flex-1 flex-col items-center gap-2">
+              <div className="h-16 w-full rounded-2xl bg-brand-dark/70" />
+              <span className="text-xs text-brand-dark/60">أثر أكبر</span>
+            </div>
+            <div className="flex flex-1 flex-col items-center gap-2">
+              <div className="h-24 w-full rounded-2xl bg-brand-lime" />
+              <span className="text-xs text-brand-dark/60">أثر مضاعف</span>
+            </div>
+          </div>
+          <p className="mt-3 text-xs text-brand-dark/70">
+            دعمك السخي يوسّع عدد المشاريع والعائلات المستفيدة فوراً.
+          </p>
+        </div>
+        <div className="rounded-2xl bg-white p-4 text-sm text-brand-dark/70 shadow-[0_12px_35px_-25px_rgba(15,46,28,0.35)]">
+          <div className="flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-brand-dark" />
+            <span>سعر التكلفة = مواد خام فقط.</span>
+          </div>
+          <div className="mt-2 flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-brand-lime" />
+            <span>ما يزيد عن التكلفة = دعم مشاريع العائلات.</span>
           </div>
         </div>
       </div>
