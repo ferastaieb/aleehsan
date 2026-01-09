@@ -17,8 +17,8 @@ export default function DonationCalculator({
   const formattedBasePrice = formatter.format(basePrice);
 
   return (
-    <div className="grid gap-8 rounded-3xl bg-white p-8 shadow-[0_20px_55px_-35px_rgba(15,46,28,0.35)] lg:grid-cols-[1.1fr_0.9fr]">
-      <div className="flex flex-col gap-4">
+    <div className="grid gap-8 rounded-3xl bg-white p-8 shadow-[0_20px_55px_-35px_rgba(15,46,28,0.35)] lg:grid-cols-[1.1fr_0.9fr] reveal-up">
+      <div className="flex flex-col gap-4 reveal-up">
         <h2 className="font-display text-2xl text-brand-dark">
           كيف يعمل نموذجنا؟
         </h2>
@@ -33,13 +33,13 @@ export default function DonationCalculator({
       </div>
 
       <div className="flex flex-col gap-4">
-        <div className="rounded-2xl border border-brand-sand bg-brand-ivory px-4 py-4">
+        <div className="rounded-2xl border border-brand-sand bg-brand-ivory px-4 py-4 reveal-up reveal-delay-1">
           <p className="text-sm text-brand-dark/60">سعر التكلفة (مواد فقط)</p>
           <p className="mt-2 font-display text-3xl text-brand-dark">
             {formattedBasePrice} {currencyLabel}
           </p>
         </div>
-        <div className="rounded-2xl bg-brand-lime/15 p-4 text-sm text-brand-dark/80">
+        <div className="rounded-2xl bg-brand-lime/15 p-4 text-sm text-brand-dark/80 reveal-pulse reveal-delay-2">
           <p className="font-display text-lg text-brand-dark">
             دعمك مفتوح بلا سقف
           </p>
@@ -48,36 +48,13 @@ export default function DonationCalculator({
             زاد دعمك زادت فرصنا لإطلاق مشاريع أكثر.
           </p>
         </div>
-        <div className="rounded-2xl border border-brand-lime/40 bg-white p-4 text-sm text-brand-dark/80">
+        <div className="rounded-2xl border border-brand-lime/40 bg-white p-4 text-sm text-brand-dark/80 reveal-up reveal-delay-3">
           <p className="font-semibold text-brand-dark">
             اختر دعماً سخياً قدر استطاعتك , دعمك الكبير يصنع فرقاً فورياً لعائلات
             أكثر.
           </p>
         </div>
-        <div className="rounded-2xl border border-brand-sand bg-brand-ivory p-4 text-sm text-brand-dark/80">
-          <div className="flex items-center justify-between">
-            <p className="font-semibold text-brand-dark">أثر دعمك يتصاعد</p>
-            <span className="text-xs text-brand-dark/60">كل زيادة = أثر أكبر</span>
-          </div>
-          <div className="mt-4 flex items-end gap-3">
-            <div className="flex flex-1 flex-col items-center gap-2">
-              <div className="h-10 w-full rounded-2xl bg-brand-dark/40" />
-              <span className="text-xs text-brand-dark/60">أثر كريم</span>
-            </div>
-            <div className="flex flex-1 flex-col items-center gap-2">
-              <div className="h-16 w-full rounded-2xl bg-brand-dark/70" />
-              <span className="text-xs text-brand-dark/60">أثر أكبر</span>
-            </div>
-            <div className="flex flex-1 flex-col items-center gap-2">
-              <div className="h-24 w-full rounded-2xl bg-brand-lime" />
-              <span className="text-xs text-brand-dark/60">أثر مضاعف</span>
-            </div>
-          </div>
-          <p className="mt-3 text-xs text-brand-dark/70">
-            دعمك السخي يوسّع عدد المشاريع والعائلات المستفيدة فوراً.
-          </p>
-        </div>
-        <div className="rounded-2xl bg-white p-4 text-sm text-brand-dark/70 shadow-[0_12px_35px_-25px_rgba(15,46,28,0.35)]">
+        <div className="rounded-2xl bg-white p-4 text-sm text-brand-dark/70 shadow-[0_12px_35px_-25px_rgba(15,46,28,0.35)] reveal-up reveal-delay-2">
           <div className="flex items-center gap-2">
             <span className="h-2 w-2 rounded-full bg-brand-dark" />
             <span>سعر التكلفة = مواد خام فقط.</span>

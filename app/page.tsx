@@ -12,11 +12,16 @@ type StatCardProps = {
   label: string;
   value: string;
   icon: ReactNode;
+  className?: string;
+  style?: CSSProperties;
 };
 
-function StatCard({ label, value, icon }: StatCardProps) {
+function StatCard({ label, value, icon, className, style }: StatCardProps) {
   return (
-    <div className="flex h-full flex-col rounded-2xl bg-brand-dark p-5 text-white shadow-[0_18px_40px_-30px_rgba(15,46,28,0.7)]">
+    <div
+      className={`flex h-full flex-col rounded-2xl bg-brand-dark p-5 text-white shadow-[0_18px_40px_-30px_rgba(15,46,28,0.7)] ${className ?? ""}`}
+      style={style}
+    >
       <div className="flex items-center justify-between">
         <div className="rounded-full bg-white/10 p-2 text-white">
           {icon}
@@ -147,9 +152,9 @@ export default async function Home() {
     <div className="min-h-screen bg-brand-ivory text-brand-ink">
       <FireworksIntro />
       <header className="relative overflow-hidden bg-brand-dark text-white">
-        <div className="pointer-events-none absolute -left-32 top-10 h-72 w-72 rounded-full bg-brand-lime/20 blur-3xl" />
-        <div className="pointer-events-none absolute -right-20 -top-10 h-60 w-60 rounded-full bg-white/10 blur-3xl" />
-        <div className="mx-auto flex max-w-6xl flex-col items-center gap-6 px-6 py-16 text-center">
+        <div className="pointer-events-none absolute -left-32 top-10 h-72 w-72 rounded-full bg-brand-lime/20 blur-3xl float-slow" />
+        <div className="pointer-events-none absolute -right-20 -top-10 h-60 w-60 rounded-full bg-white/10 blur-3xl float-slow float-delay-1" />
+        <div className="mx-auto flex max-w-6xl flex-col items-center gap-6 px-6 py-16 text-center reveal-up">
           <img
             src="/logo.png"
             alt="الإحسان"
@@ -169,7 +174,7 @@ export default async function Home() {
 
       <main className="relative z-10 -mt-10 pb-16">
         <section className="mx-auto max-w-6xl px-6">
-          <div className="rounded-3xl bg-white/90 p-8 shadow-[0_24px_60px_-40px_rgba(15,46,28,0.5)] backdrop-blur-sm">
+          <div className="rounded-3xl bg-white/90 p-8 shadow-[0_24px_60px_-40px_rgba(15,46,28,0.5)] backdrop-blur-sm reveal-up reveal-delay-1">
             <div className="flex flex-col gap-2 text-right md:flex-row md:items-center md:justify-between">
               <div>
                 <p className="text-sm text-brand-dark/60">لوحة العدادات الحية</p>
@@ -182,12 +187,14 @@ export default async function Home() {
               </div>
             </div>
             <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-              {stats.map((stat) => (
+              {stats.map((stat, index) => (
                 <StatCard
                   key={stat.label}
                   label={stat.label}
                   value={stat.value}
                   icon={stat.icon}
+                  className="reveal-up"
+                  style={{ animationDelay: `${index * 120}ms` }}
                 />
               ))}
             </div>
@@ -201,7 +208,7 @@ export default async function Home() {
         </section>
 
         <section className="mx-auto mt-12 max-w-6xl px-6">
-          <div className="flex flex-col gap-2 text-right md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-col gap-2 text-right md:flex-row md:items-center md:justify-between reveal-up">
             <div>
               <p className="text-sm text-brand-dark/60">قصص النجاح</p>
               <h2 className="font-display text-2xl text-brand-dark">
@@ -213,10 +220,11 @@ export default async function Home() {
             </p>
           </div>
           <div className="mt-6 flex gap-6 overflow-x-auto pb-4 snap-x snap-mandatory">
-            {stories.map((story) => (
+            {stories.map((story, index) => (
               <article
                 key={story.id}
-                className="min-w-[260px] max-w-sm snap-start rounded-3xl bg-white shadow-[0_18px_50px_-35px_rgba(15,46,28,0.4)]"
+                className="min-w-[260px] max-w-sm snap-start rounded-3xl bg-white shadow-[0_18px_50px_-35px_rgba(15,46,28,0.4)] reveal-up"
+                style={{ animationDelay: `${index * 140}ms` }}
               >
                 <img
                   src={story.image_url || "/place.png"}
@@ -237,7 +245,7 @@ export default async function Home() {
         </section>
 
         <section className="mx-auto mt-12 max-w-6xl px-6">
-          <div className="rounded-3xl bg-brand-dark p-8 text-white shadow-[0_25px_70px_-45px_rgba(15,46,28,0.8)]">
+          <div className="rounded-3xl bg-brand-dark p-8 text-white shadow-[0_25px_70px_-45px_rgba(15,46,28,0.8)] reveal-up">
             <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
               <div className="space-y-2">
                 <p className="text-sm text-white/70">شريط الحالة للمشروع القادم</p>
