@@ -22,6 +22,16 @@ export type Story = {
   position: number;
 };
 
+export type DetailKind = "income" | "expense" | "in-kind";
+
+export type DetailEntry = {
+  id: number;
+  kind: DetailKind;
+  description: string;
+  amount: number | null;
+  created_at: string;
+};
+
 export type Store = {
   settings: Settings;
   stories: Story[];

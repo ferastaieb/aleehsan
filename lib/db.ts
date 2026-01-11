@@ -10,13 +10,16 @@ import {
   PutCommand,
 } from "@aws-sdk/lib-dynamodb";
 
-import type { Settings, Store, Story } from "./types";
+import type { DetailEntry, DetailKind, Settings, Store, Story } from "./types";
 
 const CHARTY_TABLE_NAME = "ChartyTable";
 const STORE_KEY = "STORE";
+const DETAILS_TABLE_NAME = "ChartyDetailsTable";
+const DETAILS_KEY = "DETAILS";
 
 const projectDataDir = path.join(process.cwd(), "data");
 const projectStorePath = path.join(projectDataDir, "store.json");
+const projectDetailsPath = path.join(projectDataDir, "details.json");
 
 const storeMode =
   process.env.CHARTY_STORE_MODE ??
@@ -59,6 +62,30 @@ const defaultStories: Story[] = [
   },
 ];
 
+const defaultDetails: DetailEntry[] = [
+  {
+    id: 1,
+    kind: "income",
+    description: "تبرع فاعل خير",
+    amount: 150000,
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: 2,
+    kind: "expense",
+    description: "صرفنا لتحضير الدفعة الحالية",
+    amount: 200000,
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: 3,
+    kind: "in-kind",
+    description: "تبرع شخص بالتوصيل لمدة شهر",
+    amount: null,
+    created_at: new Date().toISOString(),
+  },
+];
+
 const defaultSettings: Settings = {
   id: 1,
   total_surplus: 15450,
@@ -92,6 +119,23 @@ function writeLocalStoreFile(store: Store): void {
   fs.writeFileSync(projectStorePath, JSON.stringify(store, null, 2), "utf8");
 }
 
+function readLocalDetailsFile(): DetailEntry[] | null {
+  if (!fs.existsSync(projectDetailsPath)) {
+    return null;
+  }
+  try {
+    const raw = fs.readFileSync(projectDetailsPath, "utf8");
+    return JSON.parse(raw) as DetailEntry[];
+  } catch {
+    return null;
+  }
+}
+
+function writeLocalDetailsFile(entries: DetailEntry[]): void {
+  fs.mkdirSync(projectDataDir, { recursive: true });
+  fs.writeFileSync(projectDetailsPath, JSON.stringify(entries, null, 2), "utf8");
+}
+
 async function readStoreItem(): Promise<Store | null> {
   const response = await docClient.send(
     new GetCommand({
@@ -117,6 +161,32 @@ async function writeStoreItem(store: Store): Promise<void> {
         pk: STORE_KEY,
         settings: store.settings,
         stories: store.stories,
+      },
+    }),
+  );
+}
+
+async function readDetailsItem(): Promise<DetailEntry[] | null> {
+  const response = await docClient.send(
+    new GetCommand({
+      TableName: DETAILS_TABLE_NAME,
+      Key: { pk: DETAILS_KEY },
+    }),
+  );
+  if (!response.Item) {
+    return null;
+  }
+  const item = response.Item as Partial<{ entries: DetailEntry[] }>;
+  return item.entries ?? null;
+}
+
+async function writeDetailsItem(entries: DetailEntry[]): Promise<void> {
+  await docClient.send(
+    new PutCommand({
+      TableName: DETAILS_TABLE_NAME,
+      Item: {
+        pk: DETAILS_KEY,
+        entries,
       },
     }),
   );
@@ -221,6 +291,99 @@ function normalizeStore(store: Store | null) {
   return { store: { settings, stories }, changed };
 }
 
+function normalizeDetails(details: DetailEntry[] | null) {
+  let changed = false;
+  const nowIso = new Date().toISOString();
+  const safeNumber = (value: unknown, fallback: number) => {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed)) {
+      changed = true;
+      return fallback;
+    }
+    if (parsed !== value) {
+      changed = true;
+    }
+    return parsed;
+  };
+  const safeNullableNumber = (
+    value: unknown,
+    fallback: number | null,
+  ): number | null => {
+    if (value === null || value === undefined || value === "") {
+      if (value !== fallback) {
+        changed = true;
+      }
+      return null;
+    }
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed)) {
+      changed = true;
+      return fallback;
+    }
+    if (parsed !== value) {
+      changed = true;
+    }
+    return parsed;
+  };
+  const safeText = (value: unknown, fallback: string) => {
+    if (typeof value !== "string") {
+      changed = true;
+      return fallback;
+    }
+    const trimmed = value.trim();
+    if (!trimmed) {
+      changed = true;
+      return fallback;
+    }
+    return trimmed;
+  };
+  const safeDate = (value: unknown, fallback: string) => {
+    if (typeof value !== "string") {
+      changed = true;
+      return fallback;
+    }
+    const trimmed = value.trim();
+    if (!trimmed) {
+      changed = true;
+      return fallback;
+    }
+    const timestamp = Date.parse(trimmed);
+    if (Number.isNaN(timestamp)) {
+      changed = true;
+      return fallback;
+    }
+    return trimmed;
+  };
+  const safeKind = (value: unknown, fallback: DetailKind): DetailKind => {
+    if (value === "income" || value === "expense" || value === "in-kind") {
+      return value;
+    }
+    changed = true;
+    return fallback;
+  };
+
+  const detailsInput = Array.isArray(details) ? details : defaultDetails;
+  if (!Array.isArray(details)) {
+    changed = true;
+  }
+
+  const entries = detailsInput.map((entry, index) => {
+    const fallback = defaultDetails[index] ?? defaultDetails[0];
+    return {
+      id: safeNumber(entry?.id, fallback?.id ?? index + 1),
+      kind: safeKind(entry?.kind, fallback?.kind ?? "income"),
+      description: safeText(
+        entry?.description,
+        fallback?.description ?? "بند جديد",
+      ),
+      amount: safeNullableNumber(entry?.amount, fallback?.amount ?? null),
+      created_at: safeDate(entry?.created_at, fallback?.created_at ?? nowIso),
+    };
+  });
+
+  return { entries, changed };
+}
+
 export async function loadStore(): Promise<Store> {
   if (isLocalStore) {
     const seed = readLocalStoreFile();
@@ -246,4 +409,31 @@ export async function saveStore(store: Store) {
     return;
   }
   await writeStoreItem(store);
+}
+
+export async function loadDetails(): Promise<DetailEntry[]> {
+  if (isLocalStore) {
+    const seed = readLocalDetailsFile();
+    const { entries, changed } = normalizeDetails(seed);
+    if (!seed || changed) {
+      writeLocalDetailsFile(entries);
+    }
+    return entries;
+  }
+
+  const raw = await readDetailsItem();
+  const seed = raw ?? readLocalDetailsFile();
+  const { entries, changed } = normalizeDetails(seed);
+  if (!raw || changed) {
+    await writeDetailsItem(entries);
+  }
+  return entries;
+}
+
+export async function saveDetails(entries: DetailEntry[]) {
+  if (isLocalStore) {
+    writeLocalDetailsFile(entries);
+    return;
+  }
+  await writeDetailsItem(entries);
 }

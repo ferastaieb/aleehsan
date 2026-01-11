@@ -3,9 +3,12 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 
 import { getDashboardData } from "@/lib/data";
+import { loadDetails } from "@/lib/db";
 
 import {
+  addDetailEntry,
   addStory,
+  deleteDetailEntry,
   deleteStory,
   loginAdmin,
   logoutAdmin,
@@ -20,6 +23,8 @@ type AdminPageProps = {
     saved?: string;
     added?: string;
     deleted?: string;
+    detail_added?: string;
+    detail_deleted?: string;
   };
 };
 
@@ -80,13 +85,22 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
   }
 
   const { settings, stories } = await getDashboardData();
+  const details = await loadDetails();
   const saved = searchParams?.saved === "1";
   const added = searchParams?.added === "1";
   const deleted = searchParams?.deleted === "1";
+  const detailAdded = searchParams?.detail_added === "1";
+  const detailDeleted = searchParams?.detail_deleted === "1";
   const updatedTimestamp = Date.parse(settings.updated_at);
   const updatedAt = Number.isNaN(updatedTimestamp)
     ? "—"
     : new Date(updatedTimestamp).toLocaleString("ar-SA");
+  const formatDetailDate = (value: string) => {
+    const timestamp = Date.parse(value);
+    return Number.isNaN(timestamp)
+      ? "—"
+      : new Date(timestamp).toLocaleDateString("ar-SA");
+  };
 
   return (
     <div className="min-h-screen bg-brand-ivory text-brand-ink">
@@ -131,6 +145,16 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
         {deleted ? (
           <div className="rounded-2xl border border-brand-sand bg-brand-ivory px-4 py-3 text-sm text-brand-dark">
             تم حذف القصة بنجاح.
+          </div>
+        ) : null}
+        {detailAdded ? (
+          <div className="rounded-2xl border border-brand-lime/40 bg-brand-lime/10 px-4 py-3 text-sm text-brand-dark">
+            تمت إضافة بند جديد.
+          </div>
+        ) : null}
+        {detailDeleted ? (
+          <div className="rounded-2xl border border-brand-sand bg-brand-ivory px-4 py-3 text-sm text-brand-dark">
+            تم حذف البند.
           </div>
         ) : null}
 
@@ -290,6 +314,87 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
                 className="rounded-xl border border-brand-sand bg-brand-ivory px-4 py-2"
               />
             </label>
+          </section>
+
+          <section className="rounded-3xl bg-white p-6 shadow-[0_20px_50px_-35px_rgba(15,46,28,0.3)]">
+            <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div>
+                <h2 className="font-display text-xl text-brand-dark">
+                  بنود المدخلات والمخرجات
+                </h2>
+                <p className="text-sm text-brand-dark/60">
+                  تظهر هذه البنود في صفحة التفاصيل عند فتحها للعلن.
+                </p>
+              </div>
+              <button
+                type="submit"
+                formAction={addDetailEntry}
+                className="rounded-full border border-brand-dark/10 bg-brand-white px-4 py-2 text-sm text-brand-dark shadow-sm"
+              >
+                إضافة بند جديد
+              </button>
+            </div>
+            <div className="grid gap-6">
+              {details.map((entry) => (
+                <div
+                  key={entry.id}
+                  className="grid gap-4 rounded-2xl border border-brand-sand bg-brand-ivory p-4"
+                >
+                  <input type="hidden" name="detail_id" value={entry.id} />
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="text-xs text-brand-dark/60">
+                      رقم البند: {entry.id}
+                    </span>
+                    <span className="text-xs text-brand-dark/60">
+                      تاريخ الإضافة: {formatDetailDate(entry.created_at)}
+                    </span>
+                    <button
+                      type="submit"
+                      formAction={deleteDetailEntry.bind(null, entry.id)}
+                      className="rounded-full border border-red-200 px-3 py-1 text-xs text-red-600 transition hover:bg-red-50"
+                    >
+                      حذف البند
+                    </button>
+                  </div>
+                  <div className="grid gap-3 md:grid-cols-[180px_1fr_180px]">
+                    <label className="flex flex-col gap-2 text-sm">
+                      النوع
+                      <select
+                        name={`detail_kind_${entry.id}`}
+                        defaultValue={entry.kind}
+                        className="rounded-xl border border-brand-sand bg-white px-4 py-2"
+                      >
+                        <option value="income">مدخول</option>
+                        <option value="expense">صرف</option>
+                        <option value="in-kind">دعم عيني</option>
+                      </select>
+                    </label>
+                    <label className="flex flex-col gap-2 text-sm">
+                      الوصف
+                      <input
+                        name={`detail_description_${entry.id}`}
+                        type="text"
+                        defaultValue={entry.description}
+                        className="rounded-xl border border-brand-sand bg-white px-4 py-2"
+                      />
+                    </label>
+                    <label className="flex flex-col gap-2 text-sm">
+                      القيمة (ليرة)
+                      <input
+                        name={`detail_amount_${entry.id}`}
+                        type="number"
+                        min="0"
+                        defaultValue={entry.amount ?? ""}
+                        className="rounded-xl border border-brand-sand bg-white px-4 py-2"
+                      />
+                    </label>
+                  </div>
+                  <p className="text-xs text-brand-dark/60">
+                    اترك القيمة فارغة للمساهمات العينية.
+                  </p>
+                </div>
+              ))}
+            </div>
           </section>
 
           <section className="rounded-3xl bg-white p-6 shadow-[0_20px_50px_-35px_rgba(15,46,28,0.3)]">

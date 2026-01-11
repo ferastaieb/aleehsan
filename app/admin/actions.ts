@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { loadStore, saveStore } from "@/lib/db";
+import { loadDetails, loadStore, saveDetails, saveStore } from "@/lib/db";
 
 const ADMIN_PASSWORD = "1234@@Ff";
 const AUTH_COOKIE = "charty_admin";
@@ -21,6 +21,42 @@ function toText(value: FormDataEntryValue | null, fallback = "") {
   }
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : fallback;
+}
+
+function toNullableNumber(
+  value: FormDataEntryValue | null,
+  fallback: number | null,
+) {
+  if (value === null || typeof value !== "string") {
+    return fallback;
+  }
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return null;
+  }
+  const parsed = Number(trimmed);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function toDetailKind(
+  value: FormDataEntryValue | null,
+  fallback: "income" | "expense" | "in-kind",
+) {
+  if (value === "income" || value === "expense" || value === "in-kind") {
+    return value;
+  }
+  return fallback;
+}
+
+function toRedirectPath(value: FormDataEntryValue | null, fallback: string) {
+  if (typeof value !== "string") {
+    return fallback;
+  }
+  const trimmed = value.trim();
+  if (!trimmed || !trimmed.startsWith("/") || trimmed.startsWith("//")) {
+    return fallback;
+  }
+  return trimmed;
 }
 
 async function requireAuth() {
@@ -46,7 +82,8 @@ export async function loginAdmin(formData: FormData) {
     maxAge: 60 * 60 * 24 * 7,
   });
 
-  redirect("/admin");
+  const redirectTo = toRedirectPath(formData.get("redirect_to"), "/admin");
+  redirect(redirectTo);
 }
 
 export async function logoutAdmin() {
@@ -65,6 +102,7 @@ export async function logoutAdmin() {
 export async function updateAdminData(formData: FormData) {
   await requireAuth();
   const store = await loadStore();
+  const details = await loadDetails();
 
   const totalSurplus = toNumber(
     formData.get("total_surplus"),
@@ -163,9 +201,45 @@ export async function updateAdminData(formData: FormData) {
     });
   }
 
+  const detailIds = formData
+    .getAll("detail_id")
+    .map((value) => Number(value))
+    .filter((value) => Number.isFinite(value));
+
+  let nextDetails = details;
+  if (detailIds.length > 0) {
+    const ids = new Set(detailIds);
+    nextDetails = details.map((entry) => {
+      if (!ids.has(entry.id)) {
+        return entry;
+      }
+      const description = toText(
+        formData.get(`detail_description_${entry.id}`),
+        entry.description,
+      );
+      const kind = toDetailKind(
+        formData.get(`detail_kind_${entry.id}`),
+        entry.kind,
+      );
+      const amount = toNullableNumber(
+        formData.get(`detail_amount_${entry.id}`),
+        entry.amount,
+      );
+
+      return {
+        ...entry,
+        description,
+        kind,
+        amount,
+      };
+    });
+  }
+
   await saveStore(store);
+  await saveDetails(nextDetails);
   revalidatePath("/");
   revalidatePath("/admin");
+  revalidatePath("/details");
   redirect("/admin?saved=1");
 }
 
@@ -213,4 +287,38 @@ export async function deleteStory(storyId: number) {
   revalidatePath("/");
   revalidatePath("/admin");
   redirect("/admin?deleted=1");
+}
+
+export async function addDetailEntry() {
+  await requireAuth();
+  const details = await loadDetails();
+  const nextId = details.reduce((maxId, entry) => Math.max(maxId, entry.id), 0);
+
+  details.push({
+    id: nextId + 1,
+    kind: "income",
+    description: "بند جديد",
+    amount: null,
+    created_at: new Date().toISOString(),
+  });
+
+  await saveDetails(details);
+  revalidatePath("/admin");
+  revalidatePath("/details");
+  redirect("/admin?detail_added=1");
+}
+
+export async function deleteDetailEntry(detailId: number) {
+  await requireAuth();
+  const details = await loadDetails();
+
+  if (!Number.isFinite(detailId)) {
+    redirect("/admin");
+  }
+
+  const nextDetails = details.filter((entry) => entry.id !== detailId);
+  await saveDetails(nextDetails);
+  revalidatePath("/admin");
+  revalidatePath("/details");
+  redirect("/admin?detail_deleted=1");
 }

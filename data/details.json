@@ -1,0 +1,23 @@
+[
+  {
+    "id": 1,
+    "kind": "income",
+    "description": "تبرع فاعل خير",
+    "amount": 150000,
+    "created_at": "2026-01-11T00:11:13.690Z"
+  },
+  {
+    "id": 2,
+    "kind": "expense",
+    "description": "صرفنا لتحضير الدفعة الحالية",
+    "amount": 200000,
+    "created_at": "2026-01-11T00:11:13.690Z"
+  },
+  {
+    "id": 3,
+    "kind": "in-kind",
+    "description": "تبرع شخص بالتوصيل لمدة شهر",
+    "amount": null,
+    "created_at": "2026-01-11T00:11:13.690Z"
+  }
+]
