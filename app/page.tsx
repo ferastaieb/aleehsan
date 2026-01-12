@@ -286,12 +286,16 @@ export default async function Home() {
           <div className="flex flex-col gap-2 text-sm text-white/80">
             <span>تواصل معنا للتبرع أو التعاون</span>
             <a
-              href="tel:+963991353511"
+              href="tel:+963947511335"
               className="font-display text-lg text-brand-lime"
               dir="ltr"
             >
-              +963991353511
+              +963947511335
             </a>
+            <p className="text-xs text-white/60">
+              If you want to donate from any spot in the world, just contact us
+              at this number.
+            </p>
           </div>
           <SalesPointsModal points={salesPoints} />
         </div>

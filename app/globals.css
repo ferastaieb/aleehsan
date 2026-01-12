@@ -153,6 +153,10 @@ a {
     background-color: rgb(255 255 255 / 0.04);
   }
 
+  .bg-brand-ink {
+    background-color: var(--brand-dark);
+  }
+
   .text-brand-dark {
     color: var(--brand-ink);
   }
