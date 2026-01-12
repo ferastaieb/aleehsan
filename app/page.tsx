@@ -67,24 +67,6 @@ export default async function Home() {
 
   const stats = [
     {
-      label: "إجمالي فائض التبرعات",
-      value: `${formatter.format(settings.total_surplus)} ليرة`,
-      icon: (
-        <svg
-          className="h-6 w-6"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M12 3v18" />
-          <path d="M7 7h8a3 3 0 0 1 0 6H9a3 3 0 0 0 0 6h8" />
-        </svg>
-      ),
-    },
-    {
       label: "عدد الأقراص المُباعة",
       value: disksValue,
       icon: (

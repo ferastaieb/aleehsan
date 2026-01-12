@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 
-import { loadDetails } from "@/lib/db";
+import { loadDetails, loadStore } from "@/lib/db";
 import { loginAdmin } from "@/app/admin/actions";
 
 export const dynamic = "force-dynamic";
@@ -66,7 +66,34 @@ export default async function DetailsPage() {
   }
 
   const details = await loadDetails();
+  const store = await loadStore();
+  const { settings } = store;
   const formatter = new Intl.NumberFormat("ar-SA");
+  let biggestDonation: number | null = null;
+  let biggestExpense: number | null = null;
+
+  for (const entry of details) {
+    if (entry.amount === null) {
+      continue;
+    }
+    if (entry.kind === "income") {
+      biggestDonation =
+        biggestDonation === null
+          ? entry.amount
+          : Math.max(biggestDonation, entry.amount);
+    } else if (entry.kind === "expense") {
+      biggestExpense =
+        biggestExpense === null
+          ? entry.amount
+          : Math.max(biggestExpense, entry.amount);
+    }
+  }
+
+  const formatMoney = (value: number) => `${formatter.format(value)} ليرة`;
+  const biggestDonationText =
+    biggestDonation === null ? "لا توجد بيانات" : formatMoney(biggestDonation);
+  const biggestExpenseText =
+    biggestExpense === null ? "لا توجد بيانات" : formatMoney(biggestExpense);
   const formatDetailDate = (value: string) => {
     const timestamp = Date.parse(value);
     return Number.isNaN(timestamp)
@@ -90,7 +117,29 @@ export default async function DetailsPage() {
       </header>
 
       <main className="mx-auto max-w-6xl px-6 py-10">
-        {details.length === 0 ? (
+        <section className="grid gap-4 md:grid-cols-3">
+          <div className="rounded-2xl border border-brand-sand bg-white p-5 shadow-[0_12px_35px_-25px_rgba(15,46,28,0.35)]">
+            <p className="text-xs text-brand-dark/60">إجمالي فائض التبرعات</p>
+            <p className="mt-2 font-display text-2xl text-brand-dark">
+              {formatMoney(settings.total_surplus)}
+            </p>
+          </div>
+          <div className="rounded-2xl border border-brand-sand bg-white p-5 shadow-[0_12px_35px_-25px_rgba(15,46,28,0.35)]">
+            <p className="text-xs text-brand-dark/60">أكبر تبرع</p>
+            <p className="mt-2 font-display text-2xl text-brand-dark">
+              {biggestDonationText}
+            </p>
+          </div>
+          <div className="rounded-2xl border border-brand-sand bg-white p-5 shadow-[0_12px_35px_-25px_rgba(15,46,28,0.35)]">
+            <p className="text-xs text-brand-dark/60">أكبر صرف</p>
+            <p className="mt-2 font-display text-2xl text-brand-dark">
+              {biggestExpenseText}
+            </p>
+          </div>
+        </section>
+
+        <div className="mt-8">
+          {details.length === 0 ? (
           <div className="rounded-2xl border border-brand-sand bg-white p-6 text-sm text-brand-dark/70">
             لا توجد بنود بعد.
           </div>
@@ -169,6 +218,7 @@ export default async function DetailsPage() {
             </div>
           </>
         )}
+        </div>
       </main>
     </div>
   );
