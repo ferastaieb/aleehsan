@@ -10,7 +10,15 @@ import {
   PutCommand,
 } from "@aws-sdk/lib-dynamodb";
 
-import type { DetailEntry, DetailKind, Settings, Store, Story } from "./types";
+import type {
+  DetailEntry,
+  DetailKind,
+  GalleryItem,
+  GalleryMediaType,
+  Settings,
+  Store,
+  Story,
+} from "./types";
 
 const CHARTY_TABLE_NAME = "ChartyTable";
 const STORE_KEY = "STORE";
@@ -58,6 +66,34 @@ const defaultStories: Story[] = [
     title: "أدوات زراعية",
     description: "مشروع زراعة منزلية لعائلة متعففة.",
     image_url: "/place.png",
+    position: 3,
+  },
+];
+
+const defaultGallery: GalleryItem[] = [
+  {
+    id: 1,
+    title: "لقطة من الميدان",
+    description: "تفاصيل قصيرة عن نشاط الفريق خلال المبادرة.",
+    media_url: "/place.png",
+    media_type: "image",
+    position: 1,
+  },
+  {
+    id: 2,
+    title: "فيديو من العمل",
+    description: "مقتطف سريع يوثق لحظة إنجاز مميزة.",
+    media_url:
+      "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
+    media_type: "video",
+    position: 2,
+  },
+  {
+    id: 3,
+    title: "يوم توزيع",
+    description: "لقطات من مشاركة المتطوعين في الميدان.",
+    media_url: "/place.png",
+    media_type: "image",
     position: 3,
   },
 ];
@@ -150,6 +186,7 @@ async function readStoreItem(): Promise<Store | null> {
   return {
     settings: item.settings as Settings,
     stories: item.stories as Story[],
+    gallery: item.gallery as GalleryItem[],
   };
 }
 
@@ -161,6 +198,7 @@ async function writeStoreItem(store: Store): Promise<void> {
         pk: STORE_KEY,
         settings: store.settings,
         stories: store.stories,
+        gallery: store.gallery,
       },
     }),
   );
@@ -216,6 +254,16 @@ function normalizeStore(store: Store | null) {
       return fallback;
     }
     return trimmed;
+  };
+  const safeGalleryType = (
+    value: unknown,
+    fallback: GalleryMediaType,
+  ): GalleryMediaType => {
+    if (value === "image" || value === "video") {
+      return value;
+    }
+    changed = true;
+    return fallback;
   };
 
   const settingsInput = store?.settings ?? ({} as Partial<Settings>);
@@ -288,7 +336,37 @@ function normalizeStore(store: Store | null) {
     position: index + 1,
   }));
 
-  return { store: { settings, stories }, changed };
+  const galleryInput = Array.isArray(store?.gallery)
+    ? store?.gallery
+    : defaultGallery;
+  if (!Array.isArray(store?.gallery)) {
+    changed = true;
+  }
+  const normalizedGallery = galleryInput.map((item, index) => {
+    const fallback = defaultGallery[index] ?? defaultGallery[0];
+    return {
+      id: safeNumber(item?.id, fallback?.id ?? index + 1),
+      title: safeText(item?.title, fallback?.title ?? "عنصر معرض جديد"),
+      description: safeText(
+        item?.description,
+        fallback?.description ?? "تفاصيل المعرض ستضاف قريباً.",
+      ),
+      media_url: safeText(item?.media_url, fallback?.media_url ?? "/place.png"),
+      media_type: safeGalleryType(
+        item?.media_type,
+        fallback?.media_type ?? "image",
+      ),
+      position: safeNumber(item?.position, index + 1),
+    };
+  });
+
+  normalizedGallery.sort((first, second) => first.position - second.position);
+  const gallery = normalizedGallery.map((item, index) => ({
+    ...item,
+    position: index + 1,
+  }));
+
+  return { store: { settings, stories, gallery }, changed };
 }
 
 function normalizeDetails(details: DetailEntry[] | null) {

@@ -48,6 +48,16 @@ function toDetailKind(
   return fallback;
 }
 
+function toGalleryType(
+  value: FormDataEntryValue | null,
+  fallback: "image" | "video",
+) {
+  if (value === "image" || value === "video") {
+    return value;
+  }
+  return fallback;
+}
+
 function toRedirectPath(value: FormDataEntryValue | null, fallback: string) {
   if (typeof value !== "string") {
     return fallback;
@@ -201,6 +211,44 @@ export async function updateAdminData(formData: FormData) {
     });
   }
 
+  const galleryIds = formData
+    .getAll("gallery_id")
+    .map((value) => Number(value))
+    .filter((value) => Number.isFinite(value));
+
+  if (galleryIds.length > 0) {
+    const ids = new Set(galleryIds);
+    store.gallery = store.gallery.map((item) => {
+      if (!ids.has(item.id)) {
+        return item;
+      }
+      const title = toText(
+        formData.get(`gallery_title_${item.id}`),
+        item.title || "عنصر معرض جديد",
+      );
+      const description = toText(
+        formData.get(`gallery_description_${item.id}`),
+        item.description || "تفاصيل المعرض ستضاف قريباً.",
+      );
+      const mediaUrl = toText(
+        formData.get(`gallery_media_${item.id}`),
+        item.media_url || "/place.png",
+      );
+      const mediaType = toGalleryType(
+        formData.get(`gallery_type_${item.id}`),
+        item.media_type,
+      );
+
+      return {
+        ...item,
+        title,
+        description,
+        media_url: mediaUrl,
+        media_type: mediaType,
+      };
+    });
+  }
+
   const detailIds = formData
     .getAll("detail_id")
     .map((value) => Number(value))
@@ -287,6 +335,53 @@ export async function deleteStory(storyId: number) {
   revalidatePath("/");
   revalidatePath("/admin");
   redirect("/admin?deleted=1");
+}
+
+export async function addGalleryItem() {
+  await requireAuth();
+  const store = await loadStore();
+
+  const nextId = store.gallery.reduce(
+    (maxId, item) => Math.max(maxId, item.id),
+    0,
+  );
+  const nextPosition = store.gallery.reduce(
+    (maxPosition, item) => Math.max(maxPosition, item.position),
+    0,
+  );
+
+  store.gallery.push({
+    id: nextId + 1,
+    title: "عنصر معرض جديد",
+    description: "تفاصيل المعرض ستضاف قريباً.",
+    media_url: "/place.png",
+    media_type: "image",
+    position: nextPosition + 1,
+  });
+
+  await saveStore(store);
+  revalidatePath("/");
+  revalidatePath("/admin");
+  redirect("/admin?gallery_added=1");
+}
+
+export async function deleteGalleryItem(itemId: number) {
+  await requireAuth();
+  const store = await loadStore();
+
+  if (!Number.isFinite(itemId)) {
+    redirect("/admin");
+  }
+
+  store.gallery = store.gallery.filter((item) => item.id !== itemId);
+  store.gallery = store.gallery
+    .sort((first, second) => first.position - second.position)
+    .map((item, index) => ({ ...item, position: index + 1 }));
+
+  await saveStore(store);
+  revalidatePath("/");
+  revalidatePath("/admin");
+  redirect("/admin?gallery_deleted=1");
 }
 
 export async function addDetailEntry() {

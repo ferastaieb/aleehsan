@@ -2,6 +2,7 @@
 import type { CSSProperties, ReactNode } from "react";
 
 import { getDashboardData } from "@/lib/data";
+import type { GalleryItem } from "@/lib/types";
 import DonationCalculator from "@/components/DonationCalculator";
 import FireworksIntro from "@/components/FireworksIntro";
 import SalesPointsModal from "@/components/SalesPointsModal";
@@ -34,12 +35,91 @@ function StatCard({ label, value, icon, className, style }: StatCardProps) {
   );
 }
 
+const VIDEO_FILE_PATTERN = /\.(mp4|webm|ogg)(\?.*)?$/i;
+
+function getVideoEmbedUrl(url: string): string | null {
+  try {
+    const parsed = new URL(url);
+    const host = parsed.hostname.replace(/^www\./, "");
+    if (host === "youtube.com" || host === "m.youtube.com") {
+      if (parsed.pathname.startsWith("/embed/")) {
+        return url;
+      }
+      const id = parsed.searchParams.get("v");
+      return id ? `https://www.youtube.com/embed/${id}` : null;
+    }
+    if (host === "youtu.be") {
+      const id = parsed.pathname.split("/").filter(Boolean)[0];
+      return id ? `https://www.youtube.com/embed/${id}` : null;
+    }
+    if (host === "vimeo.com") {
+      const id = parsed.pathname.split("/").filter(Boolean)[0];
+      return id ? `https://player.vimeo.com/video/${id}` : null;
+    }
+    if (host === "player.vimeo.com" && parsed.pathname.startsWith("/video/")) {
+      return url;
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
+
+function renderGalleryMedia(item: GalleryItem): ReactNode {
+  const mediaUrl = item.media_url || "/place.png";
+  if (item.media_type === "video") {
+    const embedUrl = getVideoEmbedUrl(mediaUrl);
+    if (embedUrl) {
+      return (
+        <iframe
+          title={item.title}
+          src={embedUrl}
+          className="h-full w-full"
+          loading="lazy"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowFullScreen
+        />
+      );
+    }
+    if (VIDEO_FILE_PATTERN.test(mediaUrl)) {
+      return (
+        <video
+          controls
+          playsInline
+          preload="metadata"
+          className="h-full w-full object-cover"
+        >
+          <source src={mediaUrl} />
+        </video>
+      );
+    }
+    return (
+      <img
+        src="/place.png"
+        alt={item.title}
+        className="h-full w-full object-cover"
+        loading="lazy"
+      />
+    );
+  }
+
+  return (
+    <img
+      src={mediaUrl}
+      alt={item.title}
+      className="h-full w-full object-cover"
+      loading="lazy"
+    />
+  );
+}
+
 export default async function Home() {
-  const { settings, stories } = await getDashboardData({
+  const { settings, stories, gallery } = await getDashboardData({
     incrementVisitors: true,
   });
   const formatter = new Intl.NumberFormat("ar-SA");
   const progress = Math.min(100, Math.max(0, settings.progress_percent));
+  const hasGallery = Array.isArray(gallery) && gallery.length > 0;
 
   const progressStyle: CSSProperties = {
     width: `${progress}%`,
@@ -187,6 +267,17 @@ export default async function Home() {
           <DonationCalculator
             basePrice={settings.base_price}
           />
+          <div className="mt-4 flex flex-col items-start gap-2 text-right sm:flex-row sm:items-center sm:justify-start sm:gap-4">
+            <a
+              href="/details"
+              className="order-2 inline-flex items-center justify-center rounded-full bg-brand-dark px-5 py-2 text-sm font-semibold text-white !text-white shadow-sm transition hover:opacity-90 self-start sm:order-1 sm:self-auto ml-auto"
+            >
+              اضغط هنا للتفاصيل المالية
+            </a>
+            <p className="order-1 text-sm text-brand-dark/60 sm:order-2">
+              يمكنك مشاهدة كل التفاصيل المتعلقة بتمويل المشروع هنا.
+            </p>
+          </div>
         </section>
 
         <section className="mx-auto mt-12 max-w-6xl px-6">
@@ -225,6 +316,46 @@ export default async function Home() {
             ))}
           </div>
         </section>
+
+        {hasGallery ? (
+          <section className="mx-auto mt-12 max-w-6xl px-6">
+            <div className="flex flex-col gap-2 text-right md:flex-row md:items-center md:justify-between reveal-up">
+              <div>
+                <p className="text-sm text-brand-dark/60">معرض الصور والفيديو</p>
+                <h2 className="font-display text-2xl text-brand-dark">
+                  لحظات حية من الميدان
+                </h2>
+              </div>
+              <p className="text-sm text-brand-dark/50">
+                اسحب يميناً ويساراً لاكتشاف الصور والفيديوهات.
+              </p>
+            </div>
+            <div className="mt-6 flex gap-6 overflow-x-auto pb-4 snap-x snap-mandatory">
+              {gallery.map((item, index) => (
+                <article
+                  key={item.id}
+                  className="w-[82%] min-w-[260px] max-w-sm snap-start rounded-3xl border border-brand-sand/70 bg-white shadow-[0_18px_50px_-35px_rgba(15,46,28,0.35)] reveal-up"
+                  style={{ animationDelay: `${index * 140}ms` }}
+                >
+                  <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-brand-sand/50">
+                    {renderGalleryMedia(item)}
+                    <span className="absolute right-4 top-4 rounded-full bg-brand-dark/80 px-3 py-1 text-xs text-white">
+                      {item.media_type === "video" ? "فيديو" : "صورة"}
+                    </span>
+                  </div>
+                  <div className="p-5">
+                    <h3 className="font-display text-lg text-brand-dark">
+                      {item.title}
+                    </h3>
+                    <p className="mt-2 text-sm text-brand-dark/70">
+                      {item.description}
+                    </p>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
+        ) : null}
 
         <section className="mx-auto mt-12 max-w-6xl px-6">
           <div className="rounded-3xl bg-brand-dark p-8 text-white shadow-[0_25px_70px_-45px_rgba(15,46,28,0.8)] reveal-up">

@@ -22,6 +22,17 @@ export type Story = {
   position: number;
 };
 
+export type GalleryMediaType = "image" | "video";
+
+export type GalleryItem = {
+  id: number;
+  title: string;
+  description: string;
+  media_url: string;
+  media_type: GalleryMediaType;
+  position: number;
+};
+
 export type DetailKind = "income" | "expense" | "in-kind";
 
 export type DetailEntry = {
@@ -35,4 +46,5 @@ export type DetailEntry = {
 export type Store = {
   settings: Settings;
   stories: Story[];
+  gallery: GalleryItem[];
 };

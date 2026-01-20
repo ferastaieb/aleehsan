@@ -1,7 +1,7 @@
 import "server-only";
 
 import { loadStore, saveStore } from "./db";
-import type { Settings, Story } from "./types";
+import type { GalleryItem, Settings, Story } from "./types";
 
 type DashboardOptions = {
   incrementVisitors?: boolean;
@@ -15,5 +15,6 @@ export async function getDashboardData(options: DashboardOptions = {}) {
   }
   const settings = store.settings as Settings;
   const stories = store.stories as Story[];
-  return { settings, stories };
+  const gallery = store.gallery as GalleryItem[];
+  return { settings, stories, gallery };
 }

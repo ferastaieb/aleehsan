@@ -4,11 +4,14 @@ import { cookies } from "next/headers";
 
 import { getDashboardData } from "@/lib/data";
 import { loadDetails } from "@/lib/db";
+import type { GalleryItem } from "@/lib/types";
 
 import {
   addDetailEntry,
+  addGalleryItem,
   addStory,
   deleteDetailEntry,
+  deleteGalleryItem,
   deleteStory,
   loginAdmin,
   logoutAdmin,
@@ -25,8 +28,85 @@ type AdminPageProps = {
     deleted?: string;
     detail_added?: string;
     detail_deleted?: string;
+    gallery_added?: string;
+    gallery_deleted?: string;
   };
 };
+
+const VIDEO_FILE_PATTERN = /\.(mp4|webm|ogg)(\?.*)?$/i;
+
+function getVideoEmbedUrl(url: string): string | null {
+  try {
+    const parsed = new URL(url);
+    const host = parsed.hostname.replace(/^www\./, "");
+    if (host === "youtube.com" || host === "m.youtube.com") {
+      if (parsed.pathname.startsWith("/embed/")) {
+        return url;
+      }
+      const id = parsed.searchParams.get("v");
+      return id ? `https://www.youtube.com/embed/${id}` : null;
+    }
+    if (host === "youtu.be") {
+      const id = parsed.pathname.split("/").filter(Boolean)[0];
+      return id ? `https://www.youtube.com/embed/${id}` : null;
+    }
+    if (host === "vimeo.com") {
+      const id = parsed.pathname.split("/").filter(Boolean)[0];
+      return id ? `https://player.vimeo.com/video/${id}` : null;
+    }
+    if (host === "player.vimeo.com" && parsed.pathname.startsWith("/video/")) {
+      return url;
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
+
+function renderGalleryPreview(item: GalleryItem) {
+  const mediaUrl = item.media_url || "/place.png";
+  if (item.media_type === "video") {
+    const embedUrl = getVideoEmbedUrl(mediaUrl);
+    if (embedUrl) {
+      return (
+        <iframe
+          title={item.title}
+          src={embedUrl}
+          className="h-32 w-full rounded-xl"
+          loading="lazy"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowFullScreen
+        />
+      );
+    }
+    if (VIDEO_FILE_PATTERN.test(mediaUrl)) {
+      return (
+        <video
+          controls
+          playsInline
+          preload="metadata"
+          className="h-32 w-full rounded-xl object-cover"
+        >
+          <source src={mediaUrl} />
+        </video>
+      );
+    }
+    return (
+      <div className="flex h-32 w-full items-center justify-center rounded-xl bg-brand-sand/60 text-xs text-brand-dark/70">
+        رابط الفيديو غير صالح
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={mediaUrl}
+      alt={item.title}
+      className="h-32 w-full rounded-xl object-cover"
+      loading="lazy"
+    />
+  );
+}
 
 export default async function AdminPage({ searchParams }: AdminPageProps) {
   const cookieStore = await cookies();
@@ -84,13 +164,15 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
     );
   }
 
-  const { settings, stories } = await getDashboardData();
+  const { settings, stories, gallery } = await getDashboardData();
   const details = await loadDetails();
   const saved = searchParams?.saved === "1";
   const added = searchParams?.added === "1";
   const deleted = searchParams?.deleted === "1";
   const detailAdded = searchParams?.detail_added === "1";
   const detailDeleted = searchParams?.detail_deleted === "1";
+  const galleryAdded = searchParams?.gallery_added === "1";
+  const galleryDeleted = searchParams?.gallery_deleted === "1";
   const updatedTimestamp = Date.parse(settings.updated_at);
   const updatedAt = Number.isNaN(updatedTimestamp)
     ? "—"
@@ -155,6 +237,16 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
         {detailDeleted ? (
           <div className="rounded-2xl border border-brand-sand bg-brand-ivory px-4 py-3 text-sm text-brand-dark">
             تم حذف البند.
+          </div>
+        ) : null}
+        {galleryAdded ? (
+          <div className="rounded-2xl border border-brand-lime/40 bg-brand-lime/10 px-4 py-3 text-sm text-brand-dark">
+            تمت إضافة عنصر جديد للمعرض.
+          </div>
+        ) : null}
+        {galleryDeleted ? (
+          <div className="rounded-2xl border border-brand-sand bg-brand-ivory px-4 py-3 text-sm text-brand-dark">
+            تم حذف عنصر من المعرض.
           </div>
         ) : null}
 
@@ -466,6 +558,89 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
                         defaultValue={story.image_url}
                         className="rounded-xl border border-brand-sand bg-white px-4 py-2"
                       />
+                    </label>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="rounded-3xl bg-white p-6 shadow-[0_20px_50px_-35px_rgba(15,46,28,0.3)]">
+            <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div>
+                <h2 className="font-display text-xl text-brand-dark">
+                  معرض الصور والفيديو
+                </h2>
+                <p className="text-sm text-brand-dark/60">
+                  أضف صوراً وفيديوهات مع عنوان ووصف. استخدم رابطاً مباشراً لصورة أو ملف فيديو mp4 أو رابط يوتيوب.
+                </p>
+              </div>
+              <button
+                type="submit"
+                formAction={addGalleryItem}
+                className="rounded-full border border-brand-dark/10 bg-brand-white px-4 py-2 text-sm text-brand-dark shadow-sm"
+              >
+                إضافة عنصر جديد
+              </button>
+            </div>
+            <div className="grid gap-6">
+              {gallery.map((item) => (
+                <div
+                  key={item.id}
+                  className="grid gap-4 rounded-2xl border border-brand-sand bg-brand-ivory p-4 md:grid-cols-[140px_1fr]"
+                >
+                  <input type="hidden" name="gallery_id" value={item.id} />
+                  {renderGalleryPreview(item)}
+                  <div className="grid gap-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-brand-dark/60">
+                        عنصر رقم {item.position}
+                      </span>
+                      <button
+                        type="submit"
+                        formAction={deleteGalleryItem.bind(null, item.id)}
+                        className="rounded-full border border-red-200 px-3 py-1 text-xs text-red-600 transition hover:bg-red-50"
+                      >
+                        حذف العنصر
+                      </button>
+                    </div>
+                    <label className="flex flex-col gap-2 text-sm">
+                      العنوان
+                      <input
+                        name={`gallery_title_${item.id}`}
+                        type="text"
+                        defaultValue={item.title}
+                        className="rounded-xl border border-brand-sand bg-white px-4 py-2"
+                      />
+                    </label>
+                    <label className="flex flex-col gap-2 text-sm">
+                      الوصف
+                      <textarea
+                        name={`gallery_description_${item.id}`}
+                        rows={3}
+                        defaultValue={item.description}
+                        className="rounded-xl border border-brand-sand bg-white px-4 py-2"
+                      />
+                    </label>
+                    <label className="flex flex-col gap-2 text-sm">
+                      رابط الصورة أو الفيديو
+                      <input
+                        name={`gallery_media_${item.id}`}
+                        type="text"
+                        defaultValue={item.media_url}
+                        className="rounded-xl border border-brand-sand bg-white px-4 py-2"
+                      />
+                    </label>
+                    <label className="flex flex-col gap-2 text-sm">
+                      النوع
+                      <select
+                        name={`gallery_type_${item.id}`}
+                        defaultValue={item.media_type}
+                        className="rounded-xl border border-brand-sand bg-white px-4 py-2"
+                      >
+                        <option value="image">صورة</option>
+                        <option value="video">فيديو</option>
+                      </select>
                     </label>
                   </div>
                 </div>

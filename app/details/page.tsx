@@ -1,12 +1,7 @@
-import { cookies } from "next/headers";
-
 import { loadDetails, loadStore } from "@/lib/db";
-import { loginAdmin } from "@/app/admin/actions";
 
 export const dynamic = "force-dynamic";
 
-const AUTH_COOKIE = "charty_admin";
-const AUTH_VALUE = "ok";
 
 const kindLabels = {
   income: "مدخول",
@@ -21,50 +16,6 @@ const kindClasses = {
 } as const;
 
 export default async function DetailsPage() {
-  const cookieStore = await cookies();
-  const isAuthed = cookieStore.get(AUTH_COOKIE)?.value === AUTH_VALUE;
-
-  if (!isAuthed) {
-    return (
-      <div className="min-h-screen bg-brand-ivory text-brand-ink">
-        <header className="border-b border-brand-dark/10 bg-white/90 backdrop-blur-sm">
-          <div className="mx-auto flex max-w-5xl flex-col gap-4 px-6 py-8 md:flex-row md:items-center md:justify-between">
-            <div>
-              <p className="text-sm text-brand-dark/60">لوحة التفاصيل</p>
-              <h1 className="font-display text-2xl text-brand-dark">
-                تسجيل الدخول للوصول
-              </h1>
-            </div>
-          </div>
-        </header>
-        <main className="mx-auto flex max-w-md flex-col gap-6 px-6 py-12">
-          <form
-            action={loginAdmin}
-            className="rounded-3xl bg-white p-6 shadow-[0_20px_50px_-35px_rgba(15,46,28,0.3)]"
-          >
-            <input type="hidden" name="redirect_to" value="/details" />
-            <label className="flex flex-col gap-2 text-sm">
-              كلمة المرور
-              <input
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                className="rounded-xl border border-brand-sand bg-brand-ivory px-4 py-2"
-                required
-              />
-            </label>
-            <button
-              type="submit"
-              className="mt-6 w-full rounded-full bg-brand-lime px-6 py-3 text-sm font-semibold text-brand-ink"
-            >
-              دخول
-            </button>
-          </form>
-        </main>
-      </div>
-    );
-  }
-
   const details = await loadDetails();
   const store = await loadStore();
   const { settings } = store;
@@ -111,7 +62,7 @@ export default async function DetailsPage() {
           </h1>
           <p className="max-w-3xl text-sm text-brand-dark/70">
             هذه القائمة توضح أبرز المدخلات والمخرجات والمساهمات العينية المرتبطة
-            بالمبادرة لضمان وضوح كامل عند فتحها للعلن.
+            بالمبادرة لضمان وضوح كامل .
           </p>
         </div>
       </header>
