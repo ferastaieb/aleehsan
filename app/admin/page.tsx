@@ -320,12 +320,12 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
                 الشفافية المالية
               </h2>
               <p className="text-sm text-brand-dark/60">
-                أدخل سعر التكلفة والمبلغ الزائد الذي يذهب لدعم العائلات.
+                أدخل سعر المنتج وقيمة الأثر من كل قطعة لدعم مشاريع العائلات.
               </p>
             </div>
             <div className="grid gap-4 md:grid-cols-2">
               <label className="flex flex-col gap-2 text-sm">
-                سعر التكلفة (مواد فقط)
+                سعر المنتج (سعر ثابت ومدروس لكل قطعة)
                 <input
                   name="base_price"
                   type="number"
@@ -335,7 +335,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
                 />
               </label>
               <label className="flex flex-col gap-2 text-sm">
-                أي مبلغ إضافي (جميعه يذهب لدعم مشاريع العائلات)
+                قيمة الأثر من هذا المنتج (تذهب بالكامل لتمويل مشاريع العائلات)
                 <input
                   name="extra_price"
                   type="number"

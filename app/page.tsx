@@ -266,6 +266,7 @@ export default async function Home() {
         <section className="mx-auto mt-12 max-w-6xl px-6">
           <DonationCalculator
             basePrice={settings.base_price}
+            impactValue={settings.extra_price}
           />
           <div className="mt-4 flex flex-col items-start gap-2 text-right sm:flex-row sm:items-center sm:justify-start sm:gap-4">
             <a
@@ -274,9 +275,18 @@ export default async function Home() {
             >
               اضغط هنا للتفاصيل المالية
             </a>
-            <p className="order-1 text-sm text-brand-dark/60 sm:order-2">
-              يمكنك مشاهدة كل التفاصيل المتعلقة بتمويل المشروع هنا.
-            </p>
+            <div className="order-1 space-y-2 text-sm text-brand-dark/70 sm:order-2">
+              <p className="font-semibold text-brand-dark">
+                الشفافية المالية تعرف على رحلة كل ليرة تدفعها:
+              </p>
+              <p>
+                تكلفة الإنتاج والتشغيل: لضمان جودة المنتج واستمرار عمل المبادرة.
+              </p>
+              <p>
+                عائد الأثر (صافي الربح): يذهب 100% لتمويل مشاريع العائلات (شراء
+                الأصول والمعدات). يمكنك مشاهدة التقارير المالية المحدثة هنا.
+              </p>
+            </div>
           </div>
         </section>
 
