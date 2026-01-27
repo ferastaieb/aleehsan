@@ -6,6 +6,7 @@ import { getDashboardData } from "@/lib/data";
 import { loadDetails } from "@/lib/db";
 import type { GalleryItem } from "@/lib/types";
 
+import AdminSaveButton from "./AdminSaveButton";
 import {
   addDetailEntry,
   addGalleryItem,
@@ -17,6 +18,7 @@ import {
   logoutAdmin,
   updateAdminData,
 } from "./actions";
+import SavedToast from "./SavedToast";
 
 export const dynamic = "force-dynamic";
 
@@ -214,11 +216,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
       </header>
 
       <main className="mx-auto flex max-w-5xl flex-col gap-8 px-6 py-10">
-        {saved ? (
-          <div className="rounded-2xl border border-brand-lime/40 bg-brand-lime/20 px-4 py-3 text-sm text-brand-dark">
-            تم حفظ البيانات بنجاح.
-          </div>
-        ) : null}
+        <SavedToast show={saved} message="تم حفظ البيانات بنجاح." />
         {added ? (
           <div className="rounded-2xl border border-brand-lime/40 bg-brand-lime/10 px-4 py-3 text-sm text-brand-dark">
             تمت إضافة قصة جديدة.
@@ -649,12 +647,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
           </section>
 
           <section className="flex flex-col items-start gap-2">
-            <button
-              type="submit"
-              className="rounded-full bg-brand-lime px-6 py-3 text-sm font-semibold text-brand-ink"
-            >
-              حفظ البيانات
-            </button>
+            <AdminSaveButton label="حفظ البيانات" loadingLabel="جاري الحفظ..." />
             <p className="text-xs text-brand-dark/60">
               آخر تحديث: {updatedAt}
             </p>
