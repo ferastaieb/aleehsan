@@ -248,6 +248,45 @@ export default async function Home() {
                 كل رقم يعكس مشروعاً قيد النمو
               </div>
             </div>
+            <div className="mt-6 flex flex-col gap-4 rounded-2xl border border-brand-sand bg-brand-ivory/60 p-4 text-right text-sm text-brand-dark/70 md:flex-row md:items-center md:justify-between">
+              <div className="space-y-1">
+                <p className="text-xs text-brand-dark/50">تواصل معنا للتبرع أو التعاون</p>
+                <a
+                  href="tel:+963947511335"
+                  className="font-display text-lg text-brand-dark"
+                  dir="ltr"
+                >
+                  +963947511335
+                </a>
+              </div>
+              <div className="space-y-1">
+                <a
+                  href="https://www.instagram.com/26_alehsan"
+                  className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-brand-sand bg-white text-brand-dark transition hover:-translate-y-0.5 hover:shadow-md"
+                  aria-label="Instagram"
+                  title="Instagram"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    className="h-5 w-5"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <rect x="3.5" y="3.5" width="17" height="17" rx="5" />
+                    <circle cx="12" cy="12" r="3.5" />
+                    <circle cx="17.2" cy="6.8" r="1" fill="currentColor" stroke="none" />
+                  </svg>
+                </a>
+              </div>
+              <p className="text-xs text-brand-dark/60 md:max-w-xs">
+                If you want to donate from any spot in the world, just contact us
+                at this number.
+              </p>
+            </div>
             <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
               {stats.map((stat, index) => (
                 <StatCard
@@ -404,20 +443,6 @@ export default async function Home() {
             <p className="font-display text-lg">الإحسان.. عطاء يثمر.</p>
             <p className="text-sm text-white/70">
               كن شريكاً دائماً في بناء فرص جديدة.
-            </p>
-          </div>
-          <div className="flex flex-col gap-2 text-sm text-white/80">
-            <span>تواصل معنا للتبرع أو التعاون</span>
-            <a
-              href="tel:+963947511335"
-              className="font-display text-lg text-brand-lime"
-              dir="ltr"
-            >
-              +963947511335
-            </a>
-            <p className="text-xs text-white/60">
-              If you want to donate from any spot in the world, just contact us
-              at this number.
             </p>
           </div>
           <SalesPointsModal points={salesPoints} />
