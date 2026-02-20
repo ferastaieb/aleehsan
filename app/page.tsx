@@ -203,7 +203,7 @@ export default async function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-brand-ivory text-brand-ink selection:bg-brand-lime selection:text-brand-dark">
+    <div className="min-h-screen bg-app-background text-app-foreground selection:bg-brand-lime selection:text-brand-dark">
       <FireworksIntro />
 
       {/* --- HERO SECTION --- */}
@@ -477,7 +477,7 @@ export default async function Home() {
         {/* --- GALLERY SECTION --- */}
         <section className="mx-auto mt-16 max-w-7xl">
           <div className="flex items-center justify-between mb-8">
-            <h2 className="font-display text-3xl font-bold text-brand-dark">{"\u0645\u0646 \u0627\u0644\u0645\u064a\u062f\u0627\u0646"}</h2>
+            <h2 className="font-display text-3xl font-bold text-brand-dark dark:text-app-foreground">{"\u0645\u0646 \u0627\u0644\u0645\u064a\u062f\u0627\u0646"}</h2>
             <div className="flex gap-2">
             </div>
           </div>

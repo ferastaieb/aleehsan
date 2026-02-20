@@ -117,7 +117,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
 
   if (!isAuthed) {
     return (
-      <div className="min-h-screen bg-brand-ivory text-brand-ink">
+      <div className="min-h-screen bg-app-background text-app-foreground">
         <header className="border-b border-brand-dark/10 bg-white/90 backdrop-blur-sm">
           <div className="mx-auto flex max-w-5xl flex-col gap-4 px-6 py-8 md:flex-row md:items-center md:justify-between">
             <div>
@@ -187,7 +187,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
   };
 
   return (
-    <div className="min-h-screen bg-brand-ivory text-brand-ink">
+    <div className="min-h-screen bg-app-background text-app-foreground">
       <header className="border-b border-brand-dark/10 bg-white/90 backdrop-blur-sm">
         <div className="mx-auto flex max-w-5xl flex-col gap-4 px-6 py-8 md:flex-row md:items-center md:justify-between">
           <div>

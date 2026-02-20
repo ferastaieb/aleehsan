@@ -10,7 +10,10 @@
   /* Creating a softer ivory */
   --brand-sand: #e8e1d2;
   --brand-white: #ffffff;
+  --app-background: #f8f6f2;
+  --app-foreground: #102718;
   --glass-border: rgba(255, 255, 255, 0.4);
+  --glass-bg: rgba(255, 255, 255, 0.7);
   --surface-rgb: 255 255 255;
 }
 
@@ -22,15 +25,18 @@
   --color-brand-ivory: var(--brand-ivory);
   --color-brand-sand: var(--brand-sand);
   --color-brand-white: var(--brand-white);
+  --color-app-background: var(--app-background);
+  --color-app-foreground: var(--app-foreground);
   --font-sans: var(--font-noto-sans-arabic);
   --font-display: var(--font-tajawal);
 
   --shadow-glow: 0 0 20px -5px var(--brand-lime);
 }
 
+html,
 body {
-  background: var(--brand-ivory);
-  color: var(--brand-ink);
+  background: var(--app-background);
+  color: var(--app-foreground);
   font-family: var(--font-sans), sans-serif;
   line-height: 1.7;
   overflow-x: hidden;
@@ -45,7 +51,7 @@ a {
 /* --- Utilities --- */
 
 .glass-card {
-  background: rgba(255, 255, 255, 0.7);
+  background: var(--glass-bg);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--glass-border);
@@ -251,12 +257,12 @@ a {
 
 .slider-marquee__fade--left {
   left: 0;
-  background: linear-gradient(to right, var(--slider-fade-color, var(--brand-ivory)), transparent);
+  background: linear-gradient(to right, var(--slider-fade-color, var(--app-background)), transparent);
 }
 
 .slider-marquee__fade--right {
   right: 0;
-  background: linear-gradient(to left, var(--slider-fade-color, var(--brand-ivory)), transparent);
+  background: linear-gradient(to left, var(--slider-fade-color, var(--app-background)), transparent);
 }
 
 .slider-marquee__fade--dark {
@@ -311,19 +317,10 @@ a {
 @media (prefers-color-scheme: dark) {
   :root {
     color-scheme: dark;
-    --brand-dark: #05140c;
-    --brand-ink: #e6f4ea;
-    --brand-lime: #b7f056;
-    --brand-gold: #d5b457;
-    --brand-ivory: #0b1511;
-    --brand-sand: #1a2c22;
-    --glass-border: rgba(255, 255, 255, 0.08);
-    /* Dark mode border */
+    --app-background: #08110d;
+    --app-foreground: #e6f4ea;
+    --glass-border: rgba(255, 255, 255, 0.18);
+    --glass-bg: rgba(248, 246, 242, 0.9);
     --surface-rgb: 5 20 12;
-  }
-
-  .glass-card {
-    background: rgba(13, 28, 20, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.05);
   }
 }

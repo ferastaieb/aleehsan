@@ -53,7 +53,7 @@ export default async function DetailsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-brand-ivory text-brand-ink">
+    <div className="min-h-screen bg-app-background text-app-foreground">
       <header className="border-b border-brand-dark/10 bg-white/90 backdrop-blur-sm">
         <div className="mx-auto flex max-w-6xl flex-col gap-3 px-6 py-10">
           <p className="text-sm text-brand-dark/60">المدخلات والمخرجات</p>

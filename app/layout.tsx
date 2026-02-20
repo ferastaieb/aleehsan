@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Noto_Sans_Arabic, Tajawal } from "next/font/google";
 import "./globals.css";
 
@@ -20,6 +20,14 @@ export const metadata: Metadata = {
   icons: {
     icon: "/ehsan.svg",
   },
+};
+
+export const viewport: Viewport = {
+  colorScheme: "light dark",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f8f6f2" },
+    { media: "(prefers-color-scheme: dark)", color: "#08110d" },
+  ],
 };
 
 export default function RootLayout({
