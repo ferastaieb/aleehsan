@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 type FloatingQuickActionsProps = {
   phoneHref: string;
@@ -14,6 +14,21 @@ export default function FloatingQuickActions({
   partnersAnchorId,
 }: FloatingQuickActionsProps) {
   const [showPartnersJump, setShowPartnersJump] = useState(false);
+  const [showPhoneHint, setShowPhoneHint] = useState(true);
+  const hideTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const phoneHintTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const isPhone = window.matchMedia("(max-width: 768px)").matches;
+    if (!isPhone) return;
+    phoneHintTimerRef.current = setTimeout(() => {
+      setShowPhoneHint(false);
+    }, 5000);
+    return () => {
+      if (phoneHintTimerRef.current) clearTimeout(phoneHintTimerRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     const SHOW_AFTER_SCROLL = 380;
@@ -24,15 +39,33 @@ export default function FloatingQuickActions({
       const target = document.getElementById(partnersAnchorId);
       const reachedPartnersSection = target
         ? target.getBoundingClientRect().top <=
-          window.innerHeight * REACHED_SECTION_TOP_FACTOR
+        window.innerHeight * REACHED_SECTION_TOP_FACTOR
         : false;
 
-      setShowPartnersJump(hasScrolledEnough && !reachedPartnersSection);
+      const shouldShow = hasScrolledEnough && !reachedPartnersSection;
+
+      setShowPartnersJump((prev) => {
+        if (shouldShow && !prev) {
+          // It just appeared, set a timer to hide it
+          if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+          hideTimerRef.current = setTimeout(() => {
+            setShowPartnersJump(false);
+          }, 3000); // Hide after 3 seconds
+          return true;
+        } else if (!shouldShow) {
+          if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+          return false;
+        }
+        return prev;
+      });
     };
 
     handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+    };
   }, [partnersAnchorId]);
 
   const jumpToPartners = () => {
@@ -40,15 +73,18 @@ export default function FloatingQuickActions({
     if (!target) {
       return;
     }
-    target.scrollIntoView({ behavior: "auto", block: "start" });
+    target.scrollIntoView({ behavior: "smooth", block: "start" });
+    setShowPartnersJump(false);
   };
 
   return (
     <>
       <div dir="ltr" className="fixed bottom-5 right-4 z-[60] flex items-center gap-2">
-        <span className="floating-phone-hint rounded-full border border-brand-sand bg-white px-4 py-1 text-xs font-semibold text-brand-dark shadow-md" dir="rtl">
-          للتبرع او الطلب اضغط هنا
-        </span>
+        {showPhoneHint ? (
+          <span className="floating-phone-hint rounded-full border border-brand-sand bg-white px-4 py-1 text-xs font-semibold text-brand-dark shadow-md" dir="rtl">
+            للتبرع او الطلب اضغط هنا
+          </span>
+        ) : null}
         <a
           href={phoneHref}
           dir="ltr"
@@ -93,14 +129,14 @@ export default function FloatingQuickActions({
         <button
           type="button"
           onClick={jumpToPartners}
-          className="fixed bottom-24 left-1/2 z-[61] -translate-x-1/2 transition hover:-translate-x-1/2 hover:-translate-y-1"
+          className="fixed bottom-24 left-1/2 z-[61] -translate-x-1/2 transition-all duration-500 hover:-translate-x-1/2 hover:-translate-y-1 animate-reveal-up"
           aria-label="الانتقال إلى شركاء النجاح"
           title="شركاء النجاح"
         >
-          <span className="mb-1 block rounded-full border border-brand-sand bg-white px-3 py-1 text-xs font-semibold text-brand-dark shadow-md">
+          <span className="mb-1 block rounded-full border border-brand-sand bg-white px-3 py-1 text-xs font-semibold text-brand-dark shadow-md whitespace-nowrap">
             شركاء النجاح
           </span>
-          <span className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-brand-dark text-white shadow-[0_18px_38px_-22px_rgba(15,46,28,0.9)]">
+          <span className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-brand-dark text-white shadow-[0_18px_38px_-22px_rgba(15,46,28,0.9)] mx-auto animate-pulse-glow">
             <svg
               className="h-5 w-5"
               viewBox="0 0 24 24"

@@ -1,0 +1,23 @@
+250:         {/* --- STATS SCROLLER (MARQUEE) --- */}
+251:         <section className="mx-auto max-w-7xl overflow-hidden py-4">
+252:           <div className="relative flex w-full flex-nowrap overflow-hidden [mask-image:_linear-gradient(to_right,transparent_0,_black_128px,_black_calc(100%-128px),transparent_100%)]">
+253:             <div className="flex animate-infinite-scroll-fast gap-6 py-4 w-max shrink-0">
+254:               {[...stats, ...stats, ...stats, ...stats].map((stat, i) => (
+255:                 <div key={`s-${stat.label}-${i}`} className="shrink-0 w-[200px]">
+256:                   <StatCard {...stat} />
+257:                 </div>
+258:               ))}
+259:             </div>
+260:             <div className="flex animate-infinite-scroll-fast gap-6 py-4 w-max shrink-0" aria-hidden="true">
+261:               {[...stats, ...stats, ...stats, ...stats].map((stat, i) => (
+262:                 <div key={`sd-${stat.label}-${i}`} className="shrink-0 w-[200px]">
+263:                   <StatCard {...stat} />
+264:                 </div>
+265:               ))}
+266:             </div>
+267:           </div>
+268:         </section>
+269: 
+270:         {/* --- MILESTONE CARD --- */}
+
+Line ending: CRLF

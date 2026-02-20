@@ -1,6 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
-import type { CSSProperties, ReactNode } from "react";
-
+import type { ReactNode } from "react";
 import FireworksIntro from "@/components/FireworksIntro";
 import FloatingQuickActions from "@/components/FloatingQuickActions";
 import { loadDetails } from "@/lib/db";
@@ -13,22 +12,22 @@ type StatCardProps = {
   label: string;
   value: string;
   icon: ReactNode;
-  className?: string;
-  style?: CSSProperties;
+  delay?: number;
 };
 
-function StatCard({ label, value, icon, className, style }: StatCardProps) {
+function StatCard({ label, value, icon, delay = 0 }: StatCardProps) {
   return (
     <div
-      className={`card-lift flex h-full flex-col rounded-2xl bg-brand-dark p-5 text-white shadow-[0_18px_40px_-30px_rgba(15,46,28,0.7)] ${className ?? ""}`}
-      style={style}
+      className="glass-card flex min-w-[160px] flex-col rounded-2xl border-transparent bg-white/60 p-5 transition-transform hover:-translate-y-1 animate-reveal-up dark:bg-white/5"
+      style={{ animationDelay: `${delay}ms` }}
     >
-      <div className="flex items-center justify-between">
-        <div className="rounded-full bg-white/10 p-2 text-white">{icon}</div>
-        <span className="text-xs text-white/60">محدث الآن</span>
+      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-lime/20 text-brand-dark">
+        {icon}
       </div>
-      <p className="mt-6 text-xs text-white/60">{label}</p>
-      <p className="mt-2 font-display text-4xl text-brand-lime">{value}</p>
+      <p className="mt-4 text-xs text-brand-dark/60 dark:text-white/60">{label}</p>
+      <p className="mt-1 font-display text-2xl font-bold text-brand-dark dark:text-white">
+        {value}
+      </p>
     </div>
   );
 }
@@ -40,9 +39,7 @@ function getVideoEmbedUrl(url: string): string | null {
     const parsed = new URL(url);
     const host = parsed.hostname.replace(/^www\./, "");
     if (host === "youtube.com" || host === "m.youtube.com") {
-      if (parsed.pathname.startsWith("/embed/")) {
-        return url;
-      }
+      if (parsed.pathname.startsWith("/embed/")) return url;
       const id = parsed.searchParams.get("v");
       return id ? `https://www.youtube.com/embed/${id}` : null;
     }
@@ -113,9 +110,7 @@ function renderGalleryMedia(item: GalleryItem): ReactNode {
 
 export default async function Home() {
   const [dashboardData, details] = await Promise.all([
-    getDashboardData({
-      incrementVisitors: true,
-    }),
+    getDashboardData({ incrementVisitors: true }),
     loadDetails(),
   ]);
   const { settings, gallery } = dashboardData;
@@ -124,12 +119,12 @@ export default async function Home() {
 
   const salesPoints = settings.sales_points
     ? settings.sales_points
-        .split("\n")
-        .map((point) => point.trim())
-        .filter(Boolean)
+      .split("\n")
+      .map((point) => point.trim())
+      .filter(Boolean)
     : [];
 
-  const formatMoney = (value: number) => `${formatter.format(value)} ليرة`;
+  const formatMoney = (value: number) => `${formatter.format(value)} \u0644\u064a\u0631\u0629`;
   let biggestDonation: number | null = null;
   for (const entry of details) {
     if (entry.kind === "income" && entry.amount !== null) {
@@ -140,398 +135,384 @@ export default async function Home() {
     }
   }
   const biggestDonationText =
-    biggestDonation === null ? "لا توجد بيانات" : formatMoney(biggestDonation);
-
-  const disksValue =
-    settings.disks_sold === 1
-      ? "قرص واحد"
-      : `${formatter.format(settings.disks_sold)} قرص`;
-  const familiesValue =
-    settings.families_supported === 1
-      ? "عائلة واحدة"
-      : `${formatter.format(settings.families_supported)} عائلة`;
-  const projectsValue =
-    settings.projects_launched === 1
-      ? "مشروع واحد"
-      : `${formatter.format(settings.projects_launched)} مشروع`;
-  const visitorsValue =
-    settings.visitors_count === 1
-      ? "زائر واحد"
-      : `${formatter.format(settings.visitors_count)} زائر`;
+    biggestDonation === null ? "\u0644\u0627 \u062a\u0648\u062c\u062f \u0628\u064a\u0627\u0646\u0627\u062a" : formatMoney(biggestDonation);
 
   const stats = [
     {
-      label: "عدد الأقراص المُباعة",
-      value: disksValue,
+      label: "\u0627\u0644\u0623\u0642\u0631\u0627\u0635 \u0627\u0644\u0645\u064f\u0628\u0627\u0639\u0629",
+      value: formatter.format(settings.disks_sold),
       icon: (
-        <svg
-          className="h-6 w-6"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M4 11h16" />
-          <path d="M6 7h12" />
-          <path d="M6 15h12" />
-          <path d="M5 5h14v14H5z" />
+        <svg fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M4 11h16M4 11l4-4m-4 4l4 4m6-11v16" />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a2.25 2.25 0 110-4.5 2.25 2.25 0 010 4.5zM12 8.75a2.25 2.25 0 012.25 2.25M6 19.5h12a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25H6A2.25 2.25 0 003.75 8.25v9A2.25 2.25 0 006 19.5z" />
         </svg>
       ),
     },
     {
-      label: "العائلات المستفيدة",
-      value: familiesValue,
+      label: "\u0627\u0644\u0639\u0627\u0626\u0644\u0627\u062a \u0627\u0644\u0645\u0633\u062a\u0641\u064a\u062f\u0629",
+      value: formatter.format(settings.families_supported),
       icon: (
-        <svg
-          className="h-6 w-6"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M16 11a3 3 0 1 0-6 0v2" />
-          <path d="M7 21v-3a4 4 0 0 1 4-4h2a4 4 0 0 1 4 4v3" />
-          <circle cx="6" cy="9" r="2" />
-          <circle cx="18" cy="9" r="2" />
-          <path d="M3 21v-2a3 3 0 0 1 3-3" />
-          <path d="M21 21v-2a3 3 0 0 0-3-3" />
+        <svg fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
         </svg>
       ),
     },
     {
-      label: "مشاريع تم إطلاقها",
-      value: projectsValue,
+      label: "\u0627\u0644\u0645\u0634\u0627\u0631\u064a\u0639",
+      value: formatter.format(settings.projects_launched),
       icon: (
-        <svg
-          className="h-6 w-6"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M4 20h16" />
-          <path d="M8 20V8l4-4 4 4v12" />
-          <path d="M8 10h8" />
-          <path d="M10 14h4" />
+        <svg fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
         </svg>
       ),
     },
     {
-      label: "عدد الزوار",
-      value: visitorsValue,
+      label: "\u0639\u062f\u062f \u0627\u0644\u0632\u0648\u0627\u0631",
+      value: formatter.format(settings.visitors_count),
       icon: (
-        <svg
-          className="h-6 w-6"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <circle cx="12" cy="8" r="3" />
-          <path d="M5 20a7 7 0 0 1 14 0" />
+        <svg fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
         </svg>
       ),
     },
   ];
-
-  const monthHighlights = [
-    {
-      title: "إنجاز الشهر الأول",
-      description: "انطلقت أول خطوة عملية نحو استقلال المشروع.",
-    },
-    {
-      title: "هدف الشهر القادم",
-      description: "ترسيخ التشغيل الذاتي ليستمر المشروع بثبات.",
-    },
-    {
-      title: "دعم المجتمع",
-      description:
-        "الشهر الأول نال دعماً كبيراً: متبرعون بالوقت، وآخرون بالتوصيل، وآخرون بالتغليف.",
-    },
-  ];
+  const partnerItems =
+    salesPoints.length > 0
+      ? Array.from(
+          { length: Math.max(salesPoints.length, 6) },
+          (_, index) => salesPoints[index % salesPoints.length],
+        )
+      : [];
+  const arabicPartnerOrdinals = [
+    "\u0627\u0644\u0623\u0648\u0644",
+    "\u0627\u0644\u062b\u0627\u0646\u064a",
+    "\u0627\u0644\u062b\u0627\u0644\u062b",
+    "\u0627\u0644\u0631\u0627\u0628\u0639",
+    "\u0627\u0644\u062e\u0627\u0645\u0633",
+    "\u0627\u0644\u0633\u0627\u062f\u0633",
+    "\u0627\u0644\u0633\u0627\u0628\u0639",
+    "\u0627\u0644\u062b\u0627\u0645\u0646",
+    "\u0627\u0644\u062a\u0627\u0633\u0639",
+    "\u0627\u0644\u0639\u0627\u0634\u0631",
+  ] as const;
+  const getPartnerLabel = (index: number) => {
+    const ordinal = arabicPartnerOrdinals[index];
+    if (ordinal) return `\u0627\u0644\u0634\u0631\u064a\u0643 ${ordinal}`;
+    return `\u0627\u0644\u0634\u0631\u064a\u0643 \u0631\u0642\u0645 ${formatter.format(index + 1)}`;
+  };
 
   return (
-    <div className="min-h-screen bg-brand-ivory text-brand-ink">
+    <div className="min-h-screen bg-brand-ivory text-brand-ink selection:bg-brand-lime selection:text-brand-dark">
       <FireworksIntro />
 
-      <header className="relative overflow-hidden bg-brand-dark text-white">
-        <div className="pointer-events-none absolute -left-24 top-8 h-72 w-72 rounded-full bg-brand-lime/20 blur-3xl float-slow" />
-        <div className="pointer-events-none absolute -right-16 top-0 h-64 w-64 rounded-full bg-white/10 blur-3xl float-slow float-delay-1" />
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-brand-dark to-transparent" />
+      {/* --- HERO SECTION --- */}
+      <header className="relative flex min-h-[90vh] flex-col overflow-hidden bg-brand-dark pb-16 pt-24 md:min-h-[85vh] md:justify-center md:pb-0 md:pt-0">
+        {/* Abstract Background Elements */}
+        <div className="absolute inset-0 z-0">
+          <div className="absolute -left-[20%] -top-[20%] h-[60vh] w-[60vh] rounded-full bg-brand-lime/10 blur-[120px] animate-pulse-glow" />
+          <div className="absolute -right-[10%] top-[40%] h-[50vh] w-[50vh] rounded-full bg-brand-gold/5 blur-[100px] animate-float" />
+          <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-brand-dark to-transparent" />
+        </div>
 
-        <div className="mx-auto flex max-w-6xl flex-col items-center gap-6 px-6 py-14 text-center reveal-up">
-          <img
-            src="/logo.png"
-            alt="الإحسان"
-            className="h-32 w-auto sm:h-44 md:h-52 lg:h-64"
-          />
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-5 py-2 text-sm">
-            <span className="h-2 w-2 rounded-full bg-brand-lime pulse-dot" />
-            <span>تحديث بعد مرور شهر من الإطلاق</span>
+        <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-col items-center px-6 text-center">
+          <div className="animate-reveal-up" style={{ animationDelay: "0ms" }}>
+            <img
+              src="/logo.png"
+              alt={"\u0627\u0644\u0625\u062d\u0633\u0627\u0646"}
+              className="h-36 w-auto drop-shadow-2xl md:h-56 lg:h-64"
+            />
           </div>
-          <h1 className="font-display text-3xl leading-tight md:text-5xl">
-            نفس الهدف.. واستراتيجية أكثر استدامة
+
+          <div
+            className="mt-8 animate-reveal-up"
+            style={{ animationDelay: "150ms" }}
+          >
+            <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-xs text-brand-lime backdrop-blur-md">
+              <span className="h-1.5 w-1.5 rounded-full bg-brand-lime animate-pulse" />
+              {"\u062a\u062d\u062f\u064a\u062b \u0627\u0644\u0634\u0647\u0631 \u0627\u0644\u0623\u0648\u0644"}
+            </span>
+          </div>
+
+          <h1
+            className="mt-6 font-display text-4xl font-bold leading-tight text-white md:text-6xl lg:text-7xl animate-reveal-up"
+            style={{ animationDelay: "300ms" }}
+          >
+            {"\u0634\u0643\u0631\u0627\u064b \u0644\u0623\u0646\u0643 "}<span className="text-gradient-lime">{"\u0634\u0631\u064a\u0643 \u0641\u064a \u0627\u0644\u062e\u064a\u0631"}</span>
           </h1>
-          <p className="max-w-3xl text-base text-white/85 md:text-lg">
-            سعر القرص الآن ثابت وواضح للجميع، ومع ذلك تبقى الفكرة كما هي: صافي
-            الأرباح بالكامل يذهب لدعم الأرامل والأيتام عبر مشاريع تمكين فقط دون
-            أي عائد ربحي. وما زال بإمكان المشتري إضافة أي تبرع فوق السعر الرسمي.
+
+          <p
+            className="mx-auto mt-6 max-w-2xl text-base text-white/70 md:text-lg animate-reveal-up"
+            style={{ animationDelay: "450ms" }}
+          >
+            {"بشرائك لقرص المحبة، أنت لم تُمتع نفسك فقط، بل بنيت مستقبلاً لغيرك. أي مبلغ إضافي بالإضافة لأرباح هذا المشروع سيُستخدم لبناء مشاريع أخرى لتشغيل الأرامل والأيتام."}
           </p>
 
-          <div className="grid w-full max-w-4xl gap-3 text-right sm:grid-cols-3">
-            <div className="card-lift rounded-2xl border border-white/20 bg-white/10 p-4 text-sm">
-              <p className="text-white/70">المنتج</p>
-              <p className="mt-1 font-semibold text-white">سعر رسمي ثابت وواضح</p>
-            </div>
-            <div className="card-lift rounded-2xl border border-white/20 bg-white/10 p-4 text-sm">
-              <p className="text-white/70">الدعم الإضافي</p>
-              <p className="mt-1 font-semibold text-white">تبرع اختياري حسب الرغبة</p>
-            </div>
-            <div className="card-lift rounded-2xl border border-white/20 bg-white/10 p-4 text-sm">
-              <p className="text-white/70">استخدام الربح</p>
-              <p className="mt-1 font-semibold text-white">
-                100% لمشاريع الأرامل والأيتام
-              </p>
+          <div
+            className="mt-10 flex w-full flex-col gap-4 sm:flex-row sm:justify-center animate-reveal-up"
+            style={{ animationDelay: "600ms" }}
+          >
+            <div className="grid grid-cols-3 gap-2 w-full max-w-lg mx-auto md:max-w-2xl">
+              <div className="rounded-xl bg-white/5 p-3 backdrop-blur-sm border border-white/5 card-lift">
+                <div className="text-brand-lime font-bold text-lg">{formatMoney(settings.base_price)}</div>
+                <div className="text-[10px] text-white/50">{"\u0633\u0639\u0631 \u0627\u0644\u0642\u0631\u0635"}</div>
+              </div>
+              <div className="rounded-xl bg-white/5 p-3 backdrop-blur-sm border border-white/5 card-lift">
+                <div className="text-brand-gold font-bold text-lg">100%</div>
+                <div className="text-[10px] text-white/50">{"\u0644\u0644\u0645\u0634\u0627\u0631\u064a\u0639"}</div>
+              </div>
+              <div className="rounded-xl bg-white/5 p-3 backdrop-blur-sm border border-white/5 card-lift">
+                <div className="text-white font-bold text-lg">{"\u0627\u062e\u062a\u064a\u0627\u0631\u064a"}</div>
+                <div className="text-[10px] text-white/50">{"\u062f\u0639\u0645 \u0625\u0636\u0627\u0641\u064a"}</div>
+              </div>
             </div>
           </div>
         </div>
       </header>
 
-      <main className="relative z-10 -mt-8 pb-16">
-        <section className="mx-auto max-w-6xl px-6">
-          <div className="grid gap-4 md:grid-cols-3">
-            {monthHighlights.map((item, index) => (
-              <article
-                key={item.title}
-                className="card-lift reveal-up rounded-3xl border border-brand-sand bg-white p-6 shadow-[0_16px_42px_-30px_rgba(15,46,28,0.35)]"
-                style={{ animationDelay: `${index * 110}ms` }}
-              >
-                <p className="text-xs text-brand-dark/60">{item.title}</p>
-                <p className="mt-2 text-sm font-semibold text-brand-dark">
-                  {item.description}
-                </p>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section className="mx-auto mt-12 max-w-6xl px-6">
-          <div className="surface-shimmer reveal-up rounded-3xl bg-white/95 p-8 shadow-[0_24px_60px_-40px_rgba(15,46,28,0.45)]">
-            <div className="flex flex-col gap-4 text-right md:flex-row md:items-end md:justify-between">
-              <div>
-                <h2 className="font-display text-2xl text-brand-dark">
-                  ملخص مالي سريع وواضح
-                </h2>
-              </div>
-              <a
-                href="/details"
-                className="inline-flex items-center justify-center rounded-full bg-brand-dark px-5 py-2 text-sm font-semibold !text-white transition hover:opacity-90"
-                style={{ color: "#fff" }}
-              >
-                <span className="!text-white">عرض الجدول المالي الكامل</span>
-              </a>
-            </div>
-
-            <div className="mt-6 grid gap-4 md:grid-cols-3">
-              <div className="card-lift rounded-2xl border border-brand-sand bg-brand-ivory/70 p-5">
-                <p className="text-xs text-brand-dark/60">السعر الرسمي للقرص</p>
-                <p className="mt-2 font-display text-3xl text-brand-dark">
-                  {formatMoney(settings.base_price)}
-                </p>
-              </div>
-              <div className="card-lift rounded-2xl border border-brand-sand bg-brand-ivory/70 p-5">
-                <p className="text-xs text-brand-dark/60">إجمالي فائض التبرعات</p>
-                <p className="mt-2 font-display text-3xl text-brand-dark">
-                  {formatMoney(settings.total_surplus)}
-                </p>
-              </div>
-              <div className="card-lift rounded-2xl border border-brand-sand bg-brand-ivory/70 p-5">
-                <p className="text-xs text-brand-dark/60">أكبر تبرع</p>
-                <p className="mt-2 font-display text-3xl text-brand-dark">
-                  {biggestDonationText}
-                </p>
-              </div>
-            </div>
-
-            <p className="mt-5 text-sm text-brand-dark/70">
-              حتى مع السعر الثابت، جميع الأرباح مخصصة لدعم الأرامل والأيتام
-              بالمشاريع فقط، دون أي عائد ربحي. والتبرع الإضافي فوق السعر الرسمي
-              يبقى خياراً متاحاً لمن يرغب.
-            </p>
-          </div>
-        </section>
-
-        <section className="mx-auto mt-12 max-w-6xl px-6">
-          <div className="rounded-3xl bg-white/90 p-8 shadow-[0_24px_60px_-40px_rgba(15,46,28,0.5)] backdrop-blur-sm reveal-up">
-            <div className="flex flex-col gap-2 text-right md:flex-row md:items-center md:justify-between">
-              <div>
-                <p className="text-sm text-brand-dark/60">لوحة العدادات الحية</p>
-                <h2 className="font-display text-2xl text-brand-dark">
-                  الأثر بالأرقام
-                </h2>
-              </div>
-              <div className="text-sm text-brand-dark/50">
-                كل رقم يعكس العمل الميداني الفعلي
-              </div>
-            </div>
-            <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-              {stats.map((stat, index) => (
-                <StatCard
-                  key={stat.label}
-                  label={stat.label}
-                  value={stat.value}
-                  icon={stat.icon}
-                  className="reveal-up"
-                  style={{ animationDelay: `${index * 120}ms` }}
-                />
+      <main className="relative z-20 -mt-10 px-4 pb-20 md:px-8">
+        {/* --- STATS SCROLLER (MARQUEE) --- */}
+        <section className="mx-auto max-w-7xl py-4">
+          <div className="slider-marquee slider-marquee--stats" dir="ltr">
+            <div className="slider-marquee__track">
+              {[0, 1].map((copyIndex) => (
+                <div key={`stats-group-${copyIndex}`} className="slider-marquee__group py-4">
+                  {stats.map((stat, statIndex) => (
+                    <div
+                      key={`stat-${copyIndex}-${stat.label}-${statIndex}`}
+                      className="shrink-0 w-[200px]"
+                      dir="rtl"
+                    >
+                      <StatCard {...stat} />
+                    </div>
+                  ))}
+                </div>
               ))}
             </div>
           </div>
         </section>
 
-        <section className="mx-auto mt-12 max-w-6xl px-6">
-          <div className="relative overflow-hidden rounded-3xl bg-brand-dark p-8 text-white shadow-[0_25px_70px_-45px_rgba(15,46,28,0.8)] reveal-up">
-            <div className="pointer-events-none absolute right-0 top-0 h-20 w-20 rounded-bl-3xl bg-brand-lime/25" />
-            <div className="pointer-events-none absolute left-0 bottom-0 h-16 w-16 rounded-tr-3xl bg-white/15" />
-            <div className="pointer-events-none absolute -left-10 -top-10 h-40 w-40 rounded-full bg-brand-lime/20 blur-3xl" />
-            <div className="pointer-events-none absolute -right-10 -bottom-10 h-40 w-40 rounded-full bg-white/10 blur-3xl" />
-            <div className="pointer-events-none absolute right-12 top-6 text-brand-lime/90">
-              <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2.5 14.4 9.6l7.1 2.4-7.1 2.4-2.4 7.1-2.4-7.1-7.1-2.4 7.1-2.4L12 2.5Z" />
-              </svg>
-            </div>
-            <div className="pointer-events-none absolute left-10 top-10 text-white/75">
-              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 3.2 13.8 8.5 19 10.2l-5.2 1.8L12 17.2l-1.8-5.2L5 10.2l5.2-1.7L12 3.2Z" />
-              </svg>
-            </div>
-            <div className="relative flex flex-col gap-5 text-right">
-              <p className="inline-flex w-fit items-center gap-2 rounded-full border border-white/25 bg-white/10 px-4 py-1 text-xs">
-                <span className="h-2 w-2 rounded-full bg-brand-lime pulse-dot" />
-                إنجاز احتفالي
-              </p>
-              <h2 className="font-display text-3xl">
-                وفرنا سعر الغاز والفرن كخطوة أولى
-              </h2>
-              <p className="max-w-3xl text-sm text-white/85">
-                هذا الإنجاز يمثّل بداية الاستقلال الفعلي للمشروع، والقادم هو
-                تثبيت التشغيل الذاتي واستمرار التمكين.
-              </p>
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="card-lift rounded-2xl border border-white/20 bg-white/10 p-4 text-sm">
-                  <p className="text-white/70">المشروع</p>
-                  <p className="mt-1 font-semibold text-white">
-                    {settings.project_title}
-                  </p>
+        {/* --- MILESTONE CARD --- */}
+        <section className="mx-auto mt-8 max-w-7xl animate-reveal-up" style={{ animationDelay: "1000ms" }}>
+          <div className="group relative overflow-hidden rounded-3xl bg-brand-dark p-8 md:p-12 text-white shadow-2xl">
+            <div className="absolute right-0 top-0 h-64 w-64 -translate-y-1/2 translate-x-1/2 rounded-full bg-brand-lime/20 blur-[80px] transition-transform duration-1000 group-hover:scale-125" />
+            <div className="absolute left-0 bottom-0 h-40 w-40 translate-y-1/3 -translate-x-1/3 rounded-full bg-white/10 blur-[60px]" />
+
+            <div className="relative z-10 grid gap-8 lg:grid-cols-2 lg:items-center">
+              <div className="relative">
+                <div className="pointer-events-none absolute -right-4 top-20 h-40 w-1 rounded-full bg-gradient-to-b from-brand-lime/60 via-white/20 to-transparent" />
+                <div className="inline-flex items-center gap-2 rounded-full bg-brand-lime px-3 py-1 text-xs font-bold text-brand-dark mb-4">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  {"\u0625\u0646\u062c\u0627\u0632 \u0643\u0628\u064a\u0631"}
                 </div>
-                <div className="card-lift rounded-2xl border border-white/20 bg-white/10 p-4 text-sm">
-                  <p className="text-white/70">الهدف التالي</p>
-                  <p className="mt-1 font-semibold text-white">
-                    مشروع مستقل يعمل دون اعتماد على التبرعات.
-                  </p>
+                <h2 className="font-display text-3xl font-bold md:text-5xl leading-tight">
+                  {"\u0648\u0641\u0631\u0646\u0627 \u0633\u0639\u0631 \u0627\u0644\u063a\u0627\u0632 \u0648\u0627\u0644\u0641\u0631\u0646 "}<br className="hidden md:block" /> <span className="text-brand-lime/90">{"\u0643\u062e\u0637\u0648\u0629 \u0623\u0648\u0644\u0649"}</span>
+                </h2>
+                <p className="mt-4 text-white/80 md:text-lg max-w-xl">
+                  {"\u0647\u0630\u0627 \u0627\u0644\u0625\u0646\u062c\u0627\u0632 \u064a\u0645\u062b\u0644 \u0628\u062f\u0627\u064a\u0629 \u0627\u0644\u0627\u0633\u062a\u0642\u0644\u0627\u0644 \u0627\u0644\u0641\u0639\u0644\u064a \u0644\u0644\u0645\u0634\u0631\u0648\u0639. \u0647\u062f\u0641\u0646\u0627 \u0627\u0644\u0642\u0627\u062f\u0645 \u0647\u0648 \u062a\u062b\u0628\u064a\u062a \u0627\u0644\u062a\u0634\u063a\u064a\u0644 \u0627\u0644\u0630\u0627\u062a\u064a \u0648\u0627\u0633\u062a\u0645\u0631\u0627\u0631 \u0627\u0644\u062a\u0645\u0643\u064a\u0646 \u062f\u0648\u0646 \u0627\u0644\u062d\u0627\u062c\u0629 \u0644\u062f\u0639\u0645 \u0645\u0633\u062a\u0645\u0631."}
+                </p>
+
+                <div className="mt-6 flex items-center gap-3">
+                  <span className="h-2.5 w-2.5 rounded-full bg-brand-lime/90" />
+                  <span className="h-px flex-1 bg-gradient-to-r from-brand-lime/70 via-brand-gold/40 to-transparent" />
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full border border-white/20 bg-white/10">
+                    <svg className="h-4 w-4 text-brand-lime" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6l4 2" /><circle cx="12" cy="12" r="8" /></svg>
+                  </span>
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full border border-white/20 bg-white/10">
+                    <svg className="h-4 w-4 text-brand-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M12 5v14" /></svg>
+                  </span>
+                </div>
+              </div>
+
+              <div className="relative">
+                <div className="pointer-events-none absolute inset-0 -z-10 rounded-3xl border border-white/5" />
+                <div className="grid gap-4 sm:grid-cols-2">
+                <div className="rounded-2xl bg-white/10 p-5 backdrop-blur-md border border-white/10 transition-colors hover:bg-white/15 card-lift">
+                  <p className="text-sm text-brand-lime/80">{"\u0627\u0644\u0645\u0634\u0631\u0648\u0639 \u0627\u0644\u062d\u0627\u0644\u064a"}</p>
+                  <p className="mt-2 text-xl font-bold">{settings.project_title}</p>
+                </div>
+                <div className="rounded-2xl bg-white/10 p-5 backdrop-blur-md border border-white/10 transition-colors hover:bg-white/15 card-lift">
+                  <p className="text-sm text-brand-lime/80">{"\u0627\u0644\u0647\u062f\u0641 \u0627\u0644\u062a\u0627\u0644\u064a"}</p>
+                  <p className="mt-2 text-xl font-bold">{"\u0645\u0634\u0631\u0648\u0639 \u0645\u0633\u062a\u0642\u0644 \u0630\u0627\u062a\u064a\u0627\u064b"}</p>
+                </div>
+                </div>
+                <div className="mt-4 flex items-center justify-center gap-3">
+                  <span className="h-1.5 w-1.5 rounded-full bg-brand-lime/80" />
+                  <span className="h-px w-10 bg-white/20" />
+                  <span className="h-1.5 w-1.5 rounded-full bg-brand-gold/80" />
+                  <span className="h-px w-10 bg-white/20" />
+                  <span className="h-1.5 w-1.5 rounded-full bg-white/80" />
                 </div>
               </div>
             </div>
           </div>
         </section>
 
-        <section id="success-partners" className="mx-auto mt-12 max-w-6xl px-6">
-          <div className="reveal-up rounded-3xl border border-brand-sand bg-white p-7 shadow-[0_18px_40px_-30px_rgba(15,46,28,0.35)]">
-            <div className="flex flex-col gap-2 text-right md:flex-row md:items-center md:justify-between">
+        {/* --- FINANCIAL HIGHLIGHTS --- */}
+        <section className="mx-auto mt-6 max-w-7xl grid gap-6 md:grid-cols-3">
+          <div className="glass-card md:col-span-2 rounded-3xl p-8 relative overflow-hidden group">
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-brand-lime/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <h3 className="font-display text-2xl font-bold text-brand-dark mb-6 relative z-10">{"\u0645\u0644\u062e\u0635 \u0645\u0627\u0644\u064a \u0634\u0641\u0627\u0641"}</h3>
+
+            <div className="space-y-6 relative z-10">
               <div>
-                <p className="text-sm text-brand-dark/60">شركاء النجاح</p>
-                <h2 className="font-display text-2xl text-brand-dark">
-                  نقاط البيع المعتمدة
-                </h2>
+                <div className="flex justify-between text-sm mb-2">
+                  <span className="font-medium">{"\u0633\u0639\u0631 \u0627\u0644\u0642\u0631\u0635"}</span>
+                  <span className="font-bold font-mono">{formatMoney(settings.base_price)}</span>
+                </div>
+                <div className="h-2 w-full bg-brand-sand/30 rounded-full overflow-hidden">
+                  <div className="h-full bg-brand-dark w-[20%] rounded-full opacity-60" />
+                </div>
               </div>
-              <p className="text-sm text-brand-dark/50">
-                شركاء ساهموا في نشر المنتج وتعزيز الأثر لوجه الله
+
+              <div>
+                <div className="flex justify-between text-sm mb-2">
+                  <span className="font-medium">{"\u0625\u062c\u0645\u0627\u0644\u064a \u0641\u0627\u0626\u0636 \u0627\u0644\u062a\u0628\u0631\u0639\u0627\u062a"}</span>
+                  <span className="font-bold font-mono text-brand-dark">{formatMoney(settings.total_surplus)}</span>
+                </div>
+                <div className="h-2 w-full bg-brand-sand/30 rounded-full overflow-hidden">
+                  <div className="h-full bg-brand-lime w-[85%] rounded-full" />
+                </div>
+              </div>
+
+              <div>
+                <div className="flex justify-between text-sm mb-2">
+                  <span className="font-medium">{"\u0623\u0643\u0628\u0631 \u062a\u0628\u0631\u0639 \u0641\u0631\u062f\u064a"}</span>
+                  <span className="font-bold font-mono text-brand-gold">{biggestDonationText}</span>
+                </div>
+                <div className="h-2 w-full bg-brand-sand/30 rounded-full overflow-hidden">
+                  <div className="h-full bg-brand-gold w-[65%] rounded-full" />
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-8 relative z-10">
+              <a
+                href="/details"
+                className="inline-flex items-center gap-2 text-sm font-bold text-brand-dark hover:text-brand-lime transition-colors"
+              >
+                {"\u0639\u0631\u0636 \u0627\u0644\u062a\u0641\u0627\u0635\u064a\u0644 \u0627\u0644\u0645\u0627\u0644\u064a\u0629 \u0627\u0644\u0643\u0627\u0645\u0644\u0629"}
+                <svg className="w-4 h-4 rtl:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+              </a>
+            </div>
+          </div>
+
+          <div className="glass-card rounded-3xl p-8 flex flex-col justify-between bg-brand-sand/20">
+            <div>
+              <h3 className="font-display text-xl font-bold text-brand-dark">{"\u062b\u0648\u0627\u0628\u062a \u0627\u0644\u0645\u0634\u0631\u0648\u0639"}</h3>
+              <ul className="mt-4 space-y-4">
+                {[
+                  "100% \u0645\u0646 \u0627\u0644\u0631\u0628\u062d \u0644\u0644\u0623\u064a\u062a\u0627\u0645",
+                  "\u0644\u0627 \u062a\u0648\u062c\u062f \u0645\u0635\u0627\u0631\u064a\u0641 \u0625\u062f\u0627\u0631\u064a\u0629 \u0645\u062e\u0641\u064a\u0629",
+                  "\u0634\u0641\u0627\u0641\u064a\u0629 \u062a\u0627\u0645\u0629 \u0641\u064a \u0627\u0644\u0623\u0631\u0642\u0627\u0645"
+                ].map((item, i) => (
+                  <li key={i} className="flex items-center gap-3 text-sm text-brand-dark/80">
+                    <span className="h-1.5 w-1.5 rounded-full bg-brand-dark" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="mt-8 pt-6 border-t border-brand-dark/10">
+              <p className="text-xs text-brand-dark/60 leading-relaxed">
+                {"\u0627\u0644\u0647\u062f\u0641 \u0644\u064a\u0633 \u0641\u0642\u0637 \u062c\u0645\u0639 \u0627\u0644\u0645\u0627\u0644\u060c \u0628\u0644 \u0628\u0646\u0627\u0621 \u062b\u0642\u0629 \u0648\u0646\u0645\u0648\u0630\u062c \u064a\u062d\u062a\u0630\u0649 \u0628\u0647 \u0641\u064a \u0627\u0644\u0639\u0645\u0644 \u0627\u0644\u062e\u064a\u0631\u064a \u0627\u0644\u0645\u0633\u062a\u062f\u0627\u0645."}
               </p>
             </div>
-            <div className="mt-4 h-px bg-gradient-to-l from-brand-lime/70 via-brand-sand to-transparent" />
-            <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-brand-sand bg-brand-ivory px-4 py-1 text-sm font-semibold text-brand-dark">
-              <span className="h-2 w-2 rounded-full bg-brand-lime" />
-              عدد الشركاء: {formatter.format(salesPoints.length)}
-            </div>
-            {salesPoints.length > 0 ? (
-              <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {salesPoints.map((point, index) => (
-                  <article
-                    key={`${point}-${index}`}
-                    className="card-lift reveal-up group relative overflow-hidden rounded-2xl border border-brand-sand bg-white p-5 shadow-[0_16px_40px_-28px_rgba(15,46,28,0.35)]"
-                    style={{ animationDelay: `${index * 90}ms` }}
-                  >
-                    <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-brand-lime to-brand-dark" />
-                    <div className="flex items-start gap-3">
-                      <div className="mt-1 rounded-full border border-brand-sand bg-brand-lime/20 px-2 py-1 text-xs font-bold text-brand-dark">
-                        #{index + 1}
-                      </div>
-                      <div>
-                        <p className="text-xs text-brand-dark/50">شريك نجاح</p>
-                        <p className="mt-1 text-sm font-semibold text-brand-dark">
-                          {point}
-                        </p>
-                      </div>
+          </div>
+        </section>
+
+        {/* --- PARTNERS SECTION (LUXURY) --- */}
+        <section id="success-partners" className="relative mx-auto mt-16 max-w-7xl overflow-hidden py-12 rounded-3xl bg-brand-dark/95">
+          <div className="absolute top-0 right-0 h-96 w-96 bg-brand-gold/10 blur-[100px] rounded-full pointer-events-none" />
+          <div className="absolute bottom-0 left-0 h-72 w-72 bg-brand-lime/5 blur-[80px] rounded-full pointer-events-none" />
+
+          <div className="px-6 text-center mb-12 relative z-10">
+            <span className="inline-block text-brand-gold text-xs tracking-[0.2em] font-bold mb-3 px-3 py-1 bg-brand-gold/10 rounded-full border border-brand-gold/20">{"\u0646\u0642\u0627\u0637 \u0627\u0644\u0628\u064a\u0639"}</span>
+            <h2 className="font-display text-4xl font-bold text-white mb-4">{"\u0634\u0631\u0643\u0627\u0621 \u0627\u0644\u0646\u062c\u0627\u062d"}</h2>
+            <div className="h-0.5 w-24 bg-gradient-to-r from-transparent via-brand-gold to-transparent mx-auto opacity-70" />
+            <p className="text-white/60 mt-4 max-w-lg mx-auto text-sm leading-relaxed">
+              {"\u0646\u0641\u062a\u062e\u0631 \u0628\u0634\u0631\u0627\u0643\u062a\u0646\u0627 \u0645\u0639 \u0646\u062e\u0628\u0629 \u0645\u0646 \u0646\u0642\u0627\u0637 \u0627\u0644\u0628\u064a\u0639 \u0627\u0644\u062a\u064a \u0633\u0627\u0647\u0645\u062a \u0641\u064a \u0625\u064a\u0635\u0627\u0644 \u0631\u0633\u0627\u0644\u0629 \u0627\u0644\u0625\u062d\u0633\u0627\u0646"}
+            </p>
+          </div>
+
+          <div className="relative w-full py-8">
+            {partnerItems.length > 0 ? (
+              <div className="slider-marquee slider-marquee--partners" dir="ltr">
+                <div className="slider-marquee__track">
+                  {[0, 1].map((copyIndex) => (
+                    <div key={`partner-group-${copyIndex}`} className="slider-marquee__group">
+                      {partnerItems.map((point, pointIndex) => (
+                        <div
+                          key={`partner-${copyIndex}-${point}-${pointIndex}`}
+                          className="group relative flex min-w-[300px] items-center gap-5 rounded-2xl border border-white/5 bg-white/[0.03] p-5 backdrop-blur-sm transition-all duration-500 hover:border-brand-gold/30 hover:bg-white/[0.08] hover:shadow-[0_0_30px_rgba(217,182,90,0.1)]"
+                          dir="rtl"
+                        >
+                          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-brand-gold/20 to-brand-dark/50 border border-brand-gold/20 text-brand-gold font-bold text-xl shadow-inner group-hover:scale-110 transition-transform duration-500">
+                            {(pointIndex % salesPoints.length) + 1}
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-[10px] text-brand-gold/60 tracking-wider mb-1 font-medium">
+                              {getPartnerLabel(pointIndex)}
+                            </span>
+                            <span className="font-display font-bold text-white text-lg tracking-wide group-hover:text-brand-gold transition-colors">{point}</span>
+                          </div>
+
+                          <div className="absolute right-4 top-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
+                            <svg className="w-5 h-5 text-brand-gold/50" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  </article>
-                ))}
+                  ))}
+                </div>
               </div>
             ) : (
-              <div className="mt-6 rounded-2xl border border-brand-sand bg-white p-5 text-sm text-brand-dark/65">
-                لا توجد نقاط بيع مضافة حالياً.
-              </div>
+              <p className="px-6 text-center text-sm text-white/60">
+                {"\u0633\u062a\u0638\u0647\u0631 \u0646\u0642\u0627\u0637 \u0627\u0644\u0628\u064a\u0639 \u0647\u0646\u0627 \u0639\u0646\u062f \u0625\u0636\u0627\u0641\u062a\u0647\u0627."}
+              </p>
             )}
           </div>
         </section>
 
-        <section className="mx-auto mt-12 max-w-6xl px-6">
-          <div className="flex flex-col gap-2 text-right md:flex-row md:items-center md:justify-between reveal-up">
-            <div>
-              <p className="text-sm text-brand-dark/60">صور وفيديوهات</p>
-              <h2 className="font-display text-2xl text-brand-dark">
-                لحظات حية من الميدان
-              </h2>
+        {/* --- GALLERY SECTION --- */}
+        <section className="mx-auto mt-16 max-w-7xl">
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="font-display text-3xl font-bold text-brand-dark">{"\u0645\u0646 \u0627\u0644\u0645\u064a\u062f\u0627\u0646"}</h2>
+            <div className="flex gap-2">
             </div>
-            <p className="text-sm text-brand-dark/50">
-              اسحب يميناً ويساراً لاكتشاف الصور والفيديوهات.
-            </p>
           </div>
+
           {hasGallery ? (
-            <div className="mt-6 flex gap-6 overflow-x-auto pb-4 snap-x snap-mandatory">
-              {gallery.map((item, index) => (
-                <article
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {gallery.map((item) => (
+                <div
                   key={item.id}
-                  className="card-lift w-[82%] min-w-[260px] max-w-sm snap-start rounded-3xl border border-brand-sand/70 bg-white shadow-[0_18px_50px_-35px_rgba(15,46,28,0.35)] reveal-up"
-                  style={{ animationDelay: `${index * 140}ms` }}
+                  className="group relative overflow-hidden rounded-3xl bg-white shadow-sm transition-all hover:shadow-xl card-lift"
                 >
-                  <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-brand-sand/50">
-                    {renderGalleryMedia(item)}
-                    <span className="absolute right-4 top-4 rounded-full bg-brand-dark/80 px-3 py-1 text-xs text-white">
-                      {item.media_type === "video" ? "فيديو" : "صورة"}
+                  <div className="aspect-[4/3] w-full overflow-hidden bg-gray-100">
+                    <div className="h-full w-full transition-transform duration-700 group-hover:scale-105">
+                      {renderGalleryMedia(item)}
+                    </div>
+                  </div>
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-6 pt-20 text-white">
+                    <div className="translate-y-2 transition-transform duration-300 group-hover:translate-y-0">
+                      <h3 className="font-display text-lg font-bold">{item.title}</h3>
+                      {item.description && (
+                        <p className="mt-2 line-clamp-2 text-sm text-white/80 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                          {item.description}
+                        </p>
+                      )}
+                    </div>
+                    <span className="absolute top-4 right-4 rounded-full bg-white/20 backdrop-blur-md px-3 py-1 text-xs font-medium">
+                      {item.media_type === "video" ? "\u0641\u064a\u062f\u064a\u0648" : "\u0635\u0648\u0631\u0629"}
                     </span>
                   </div>
-                  <div className="p-5">
-                    <h3 className="font-display text-lg text-brand-dark">
-                      {item.title}
-                    </h3>
-                    <p className="mt-2 text-sm text-brand-dark/70">
-                      {item.description}
-                    </p>
-                  </div>
-                </article>
+                </div>
               ))}
             </div>
           ) : (
-            <div className="mt-6 rounded-2xl border border-brand-sand bg-white p-6 text-sm text-brand-dark/70">
-              سيتم إضافة صور وفيديوهات جديدة قريباً.
+            <div className="rounded-3xl border border-brand-sand/50 bg-white/50 p-12 text-center text-brand-dark/60">
+              <p>{"\u0633\u064a\u062a\u0645 \u0625\u0636\u0627\u0641\u0629 \u0635\u0648\u0631 \u0648\u0641\u064a\u062f\u064a\u0648\u0647\u0627\u062a \u0642\u0631\u064a\u0628\u0627\u064b \u0644\u062a\u0648\u062b\u064a\u0642 \u0627\u0644\u0623\u062b\u0631."}</p>
             </div>
           )}
         </section>
@@ -543,21 +524,32 @@ export default async function Home() {
         partnersAnchorId="success-partners"
       />
 
-      <footer className="bg-brand-ink text-white">
-        <div className="mx-auto flex max-w-6xl flex-col gap-6 px-6 py-10 text-right md:flex-row md:items-center md:justify-between">
-          <div>
-            <p className="font-display text-lg">الإحسان.. عطاء يثمر.</p>
-            <p className="text-sm text-white/70">
-              نموذج مستدام يفتح باب التمكين ويوسّع أثر الخير.
-            </p>
+      <footer className="relative z-10 bg-brand-dark text-white pt-16 pb-8">
+        <div className="mx-auto px-6 max-w-7xl">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-8 text-center md:text-right border-b border-white/10 pb-8">
+            <div>
+              <h4 className="font-display text-2xl font-bold text-brand-lime">{"\u0627\u0644\u0625\u062d\u0633\u0627\u0646.. \u0639\u0637\u0627\u0621 \u064a\u062b\u0645\u0631"}</h4>
+              <p className="mt-2 text-white/60 text-sm max-w-md">{"\u0646\u0633\u0639\u0649 \u0644\u062a\u0645\u0643\u064a\u0646 \u0627\u0644\u0623\u0633\u0631 \u0627\u0644\u0645\u062d\u062a\u0627\u062c\u0629 \u0639\u0628\u0631 \u0645\u0634\u0627\u0631\u064a\u0639 \u062a\u0646\u0645\u0648\u064a\u0629 \u0645\u0633\u062a\u062f\u0627\u0645\u0629\u060c \u0628\u0634\u0641\u0627\u0641\u064a\u0629 \u062a\u0627\u0645\u0629 \u0648\u0634\u0631\u0627\u0643\u0629 \u0645\u062c\u062a\u0645\u0639\u064a\u0629 \u0641\u0627\u0639\u0644\u0629."}</p>
+            </div>
+            <div className="flex gap-4">
+              <a
+                href="https://www.instagram.com/26_alehsan"
+                className="h-12 w-12 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/10 hover:scale-110 transition-all"
+                aria-label="Instagram"
+              >
+                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" /></svg>
+              </a>
+              <a
+                href="tel:+963947511335"
+                className="h-12 w-12 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/10 hover:scale-110 transition-all"
+                aria-label="Call"
+              >
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" /></svg>
+              </a>
+            </div>
           </div>
-          <div className="space-y-2 text-sm text-white/75">
-            <a href="tel:+963947511335" className="block" dir="ltr">
-              +963947511335
-            </a>
-            <a href="https://www.instagram.com/26_alehsan" className="block">
-              Instagram: 26_alehsan
-            </a>
+          <div className="pt-8 text-center text-xs text-white/30">
+            &copy; {new Date().getFullYear()} {"\u0641\u0631\u064a\u0642 \u0627\u0644\u0625\u062d\u0633\u0627\u0646 \u0627\u0644\u062a\u0637\u0648\u0639\u064a. \u062c\u0645\u064a\u0639 \u0627\u0644\u062d\u0642\u0648\u0642 \u0645\u062d\u0641\u0648\u0638\u0629."}
           </div>
         </div>
       </footer>
