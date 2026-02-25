@@ -211,11 +211,11 @@ a {
 
 @keyframes slider-marquee-scroll {
   0% {
-    transform: translate3d(0, 0, 0);
+    transform: translate3d(-50%, 0, 0);
   }
 
   100% {
-    transform: translate3d(-50%, 0, 0);
+    transform: translate3d(0, 0, 0);
   }
 }
 
@@ -313,14 +313,3 @@ a {
   }
 }
 
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    color-scheme: dark;
-    --app-background: #08110d;
-    --app-foreground: #e6f4ea;
-    --glass-border: rgba(255, 255, 255, 0.18);
-    --glass-bg: rgba(248, 246, 242, 0.9);
-    --surface-rgb: 5 20 12;
-  }
-}

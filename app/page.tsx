@@ -18,14 +18,14 @@ type StatCardProps = {
 function StatCard({ label, value, icon, delay = 0 }: StatCardProps) {
   return (
     <div
-      className="glass-card flex min-w-[160px] flex-col rounded-2xl border-transparent bg-white/60 p-5 transition-transform hover:-translate-y-1 animate-reveal-up dark:bg-white/5"
+      className="glass-card flex min-w-[160px] flex-col rounded-2xl border-transparent bg-white/60 p-5 transition-transform hover:-translate-y-1 animate-reveal-up"
       style={{ animationDelay: `${delay}ms` }}
     >
       <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-lime/20 text-brand-dark">
         {icon}
       </div>
-      <p className="mt-4 text-xs text-brand-dark/60 dark:text-white/60">{label}</p>
-      <p className="mt-1 font-display text-2xl font-bold text-brand-dark dark:text-white">
+      <p className="mt-4 text-xs text-brand-dark/60">{label}</p>
+      <p className="mt-1 font-display text-2xl font-bold text-brand-dark">
         {value}
       </p>
     </div>
@@ -477,7 +477,7 @@ export default async function Home() {
         {/* --- GALLERY SECTION --- */}
         <section className="mx-auto mt-16 max-w-7xl">
           <div className="flex items-center justify-between mb-8">
-            <h2 className="font-display text-3xl font-bold text-brand-dark dark:text-app-foreground">{"\u0645\u0646 \u0627\u0644\u0645\u064a\u062f\u0627\u0646"}</h2>
+            <h2 className="font-display text-3xl font-bold text-brand-dark">{"\u0645\u0646 \u0627\u0644\u0645\u064a\u062f\u0627\u0646"}</h2>
             <div className="flex gap-2">
             </div>
           </div>
