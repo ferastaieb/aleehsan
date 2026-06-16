@@ -37,7 +37,7 @@ const isLocalStore = storeMode === "local";
 const region =
   process.env.AWS_REGION ??
   process.env.AWS_DEFAULT_REGION ??
-  "me-south-1";
+  "ap-south-1";
 
 const docClient = DynamoDBDocumentClient.from(
   new DynamoDBClient({ region }),
