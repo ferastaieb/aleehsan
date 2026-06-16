@@ -392,7 +392,9 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
             <div className="mb-6">
               <h2 className="font-display text-xl text-brand-dark">نقاط البيع</h2>
               <p className="text-sm text-brand-dark/60">
-                أضف كل نقطة بيع في سطر مستقل ليظهر للزوار في النافذة المنبثقة.
+                أضف كل نقطة بيع في سطر مستقل لتظهر للزوار في قسم نقاط البيع.
+                لإضافة رقم هاتف للاتصال المباشر، اكتب علامة | بعد اسم النقطة ثم
+                الرقم. مثال: دمشق - سوق الحميدية | 0947511335
               </p>
             </div>
             <label className="flex flex-col gap-2 text-sm">
@@ -401,6 +403,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
                 name="sales_points"
                 rows={5}
                 defaultValue={settings.sales_points}
+                placeholder={"دمشق - سوق الحميدية | 0947511335\nحلب - السبع بحرات | 0912345678\nحمص - شارع الدبلان"}
                 className="rounded-xl border border-brand-sand bg-brand-ivory px-4 py-2"
               />
             </label>

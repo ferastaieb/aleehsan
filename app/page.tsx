@@ -34,6 +34,25 @@ function StatCard({ label, value, icon, delay = 0 }: StatCardProps) {
 
 const VIDEO_FILE_PATTERN = /\.(mp4|webm|ogg)(\?.*)?$/i;
 
+type SalesPoint = { name: string; phone: string | null };
+
+function parseSalesPoint(line: string): SalesPoint {
+  const separatorIndex = line.indexOf("|");
+  if (separatorIndex === -1) {
+    return { name: line.trim(), phone: null };
+  }
+  const name = line.slice(0, separatorIndex).trim();
+  const rawPhone = line.slice(separatorIndex + 1).trim();
+  return {
+    name: name || rawPhone,
+    phone: rawPhone || null,
+  };
+}
+
+function telHref(phone: string): string {
+  return `tel:${phone.replace(/[^\d+]/g, "")}`;
+}
+
 function getVideoEmbedUrl(url: string): string | null {
   try {
     const parsed = new URL(url);
@@ -117,11 +136,13 @@ export default async function Home() {
   const formatter = new Intl.NumberFormat("ar-SA");
   const hasGallery = Array.isArray(gallery) && gallery.length > 0;
 
-  const salesPoints = settings.sales_points
+  const salesPoints: SalesPoint[] = settings.sales_points
     ? settings.sales_points
       .split("\n")
       .map((point) => point.trim())
       .filter(Boolean)
+      .map(parseSalesPoint)
+      .filter((point) => point.name.length > 0)
     : [];
 
   const formatMoney = (value: number) => `${formatter.format(value)} \u0644\u064a\u0631\u0629`;
@@ -443,7 +464,7 @@ export default async function Home() {
                     <div key={`partner-group-${copyIndex}`} className="slider-marquee__group">
                       {partnerItems.map((point, pointIndex) => (
                         <div
-                          key={`partner-${copyIndex}-${point}-${pointIndex}`}
+                          key={`partner-${copyIndex}-${point.name}-${pointIndex}`}
                           className="group relative flex min-w-[300px] items-center gap-5 rounded-2xl border border-white/5 bg-white/[0.03] p-5 backdrop-blur-sm transition-all duration-500 hover:border-brand-gold/30 hover:bg-white/[0.08] hover:shadow-[0_0_30px_rgba(217,182,90,0.1)]"
                           dir="rtl"
                         >
@@ -454,12 +475,26 @@ export default async function Home() {
                             <span className="text-[10px] text-brand-gold/60 tracking-wider mb-1 font-medium">
                               {getPartnerLabel(pointIndex)}
                             </span>
-                            <span className="font-display font-bold text-white text-lg tracking-wide group-hover:text-brand-gold transition-colors">{point}</span>
+                            <span className="font-display font-bold text-white text-lg tracking-wide group-hover:text-brand-gold transition-colors">{point.name}</span>
                           </div>
 
-                          <div className="absolute right-4 top-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
-                            <svg className="w-5 h-5 text-brand-gold/50" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
-                          </div>
+                          {point.phone ? (
+                            <a
+                              href={telHref(point.phone)}
+                              dir="ltr"
+                              className="ms-auto inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-brand-gold/40 bg-brand-gold/10 text-brand-gold shadow-inner transition-all duration-300 hover:scale-110 hover:bg-brand-gold hover:text-brand-dark"
+                              aria-label={`اتصال بـ ${point.name}`}
+                              title="اتصال مباشر"
+                            >
+                              <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                <path d="M6.54 4.98a1.5 1.5 0 0 1 1.57-.34l2.2.73a1.5 1.5 0 0 1 1.02 1.24l.19 2.23a1.5 1.5 0 0 1-.43 1.2l-1.1 1.1a13.4 13.4 0 0 0 3.87 3.87l1.1-1.1a1.5 1.5 0 0 1 1.2-.43l2.23.19a1.5 1.5 0 0 1 1.24 1.02l.73 2.2a1.5 1.5 0 0 1-.34 1.57l-1.3 1.3a2.5 2.5 0 0 1-2.47.65c-2.58-.65-4.97-2.24-7.18-4.45-2.21-2.21-3.8-4.6-4.45-7.18a2.5 2.5 0 0 1 .65-2.47l1.3-1.3Z" />
+                              </svg>
+                            </a>
+                          ) : (
+                            <div className="absolute right-4 top-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
+                              <svg className="w-5 h-5 text-brand-gold/50" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
