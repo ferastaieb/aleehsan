@@ -15,10 +15,15 @@ export default function FireworksIntro() {
     tx: string;
     ty: string;
     rotation: number;
-    keyframeName: string;
   }>>([]);
 
   useEffect(() => {
+    // Respect users who prefer reduced motion — skip the burst entirely.
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setVisible(false);
+      return;
+    }
+
     const palette = [
       "#c9f25c", // brand-lime
       "#d9b65a", // brand-gold
@@ -30,7 +35,7 @@ export default function FireworksIntro() {
     ];
 
     // Generate particles from BOTH sides
-    const newParticles = Array.from({ length: 150 }, (_, i) => {
+    const newParticles = Array.from({ length: 80 }, (_, i) => {
       const isLeft = i % 2 === 0;
       const startY = Math.random() * 80 + 10;
 
@@ -44,37 +49,23 @@ export default function FireworksIntro() {
         top: `${startY}%`,
         size: `${Math.random() * 6 + 3}px`,
         color: palette[Math.floor(Math.random() * palette.length)],
-        animationDelay: `${Math.random() * 1.5}s`,
+        animationDelay: `${Math.random() * 1.2}s`,
         tx: `${tx}vw`,
         ty: `${ty}vh`,
         rotation: Math.random() * 720 - 360,
-        keyframeName: `fw-p-${i}`,
       };
     });
 
     setParticles(newParticles);
 
-    const timer = setTimeout(() => setVisible(false), 5000);
+    const timer = setTimeout(() => setVisible(false), 3500);
     return () => clearTimeout(timer);
   }, []);
 
   if (!visible) return null;
 
-  // Build a single style block with ALL unique keyframes
-  const keyframesCSS = particles
-    .map(
-      (p) => `
-      @keyframes ${p.keyframeName} {
-        0% { transform: translate(0, 0) rotate(0deg) scale(0); opacity: 1; }
-        50% { opacity: 1; }
-        100% { transform: translate(${p.tx}, ${p.ty}) rotate(${p.rotation}deg) scale(0.5); opacity: 0; }
-      }`
-    )
-    .join("\n");
-
   return (
     <div className="fireworks-overlay overflow-hidden" aria-hidden="true">
-      <style dangerouslySetInnerHTML={{ __html: keyframesCSS }} />
       {particles.map((p) => (
         <div
           key={p.id}
@@ -85,9 +76,12 @@ export default function FireworksIntro() {
             width: p.size,
             height: p.size,
             backgroundColor: p.color,
-            boxShadow: `0 0 10px 2px ${p.color}`,
+            boxShadow: `0 0 8px 1px ${p.color}`,
             opacity: 0,
-            animation: `${p.keyframeName} 2.5s cubic-bezier(0.25, 1, 0.5, 1) forwards ${p.animationDelay}`,
+            "--fw-tx": p.tx,
+            "--fw-ty": p.ty,
+            "--fw-rot": `${p.rotation}deg`,
+            animation: `fw-burst 2.4s cubic-bezier(0.25, 1, 0.5, 1) forwards ${p.animationDelay}`,
           } as CSSProperties}
         />
       ))}

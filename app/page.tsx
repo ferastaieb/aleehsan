@@ -2,6 +2,7 @@
 import type { ReactNode } from "react";
 import FireworksIntro from "@/components/FireworksIntro";
 import FloatingQuickActions from "@/components/FloatingQuickActions";
+import ScrollReveal from "@/components/ScrollReveal";
 import { loadDetails } from "@/lib/db";
 import { getDashboardData } from "@/lib/data";
 import type { GalleryItem } from "@/lib/types";
@@ -12,20 +13,16 @@ type StatCardProps = {
   label: string;
   value: string;
   icon: ReactNode;
-  delay?: number;
 };
 
-function StatCard({ label, value, icon, delay = 0 }: StatCardProps) {
+function StatCard({ label, value, icon }: StatCardProps) {
   return (
-    <div
-      className="glass-card flex min-w-[160px] flex-col rounded-2xl border-transparent bg-white/60 p-5 transition-transform hover:-translate-y-1 animate-reveal-up"
-      style={{ animationDelay: `${delay}ms` }}
-    >
-      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-lime/20 text-brand-dark">
+    <div className="glass-card flex min-w-[160px] flex-col rounded-2xl border-transparent p-5 transition-transform motion-safe:hover:-translate-y-1 focus-within:-translate-y-1 motion-reduce:transform-none">
+      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-brand-lime/30 to-brand-lime/10 text-brand-dark ring-1 ring-brand-lime/30 shadow-[0_4px_12px_-6px_rgba(201,242,92,0.7)]">
         {icon}
       </div>
-      <p className="mt-4 text-xs text-brand-dark/60">{label}</p>
-      <p className="mt-1 font-display text-2xl font-bold text-brand-dark">
+      <p className="mt-4 text-xs font-medium tracking-wide text-brand-dark/55">{label}</p>
+      <p className="mt-1 font-display text-[1.7rem] font-bold leading-none tracking-tight text-brand-dark tabular-nums">
         {value}
       </p>
     </div>
@@ -198,13 +195,16 @@ export default async function Home() {
       ),
     },
   ];
-  const partnerItems =
+  // Repeat the FULL unique partner list a whole number of times so every
+  // rendered group contains complete cycles. A partial tail (e.g. padding 4
+  // partners up to 6 => [1,2,3,4,1,2]) made the seam read as a 1↔2 "bounce";
+  // repeating whole cycles keeps the infinite scroll seamless.
+  const MIN_PARTNER_CARDS = 6;
+  const partnerRepeat =
     salesPoints.length > 0
-      ? Array.from(
-          { length: Math.max(salesPoints.length, 6) },
-          (_, index) => salesPoints[index % salesPoints.length],
-        )
-      : [];
+      ? Math.max(1, Math.ceil(MIN_PARTNER_CARDS / salesPoints.length))
+      : 0;
+  const partnerItems = Array.from({ length: partnerRepeat }, () => salesPoints).flat();
   const arabicPartnerOrdinals = [
     "\u0627\u0644\u0623\u0648\u0644",
     "\u0627\u0644\u062b\u0627\u0646\u064a",
@@ -225,6 +225,13 @@ export default async function Home() {
 
   return (
     <div className="min-h-screen bg-app-background text-app-foreground selection:bg-brand-lime selection:text-brand-dark">
+      {/* Without JS, never leave scroll-reveal content hidden. */}
+      <noscript
+        dangerouslySetInnerHTML={{
+          __html:
+            "<style>[data-reveal]{opacity:1 !important;transform:none !important}</style>",
+        }}
+      />
       <FireworksIntro />
 
       {/* --- HERO SECTION --- */}
@@ -232,7 +239,7 @@ export default async function Home() {
         {/* Abstract Background Elements */}
         <div className="absolute inset-0 z-0">
           <div className="absolute -left-[20%] -top-[20%] h-[60vh] w-[60vh] rounded-full bg-brand-lime/10 blur-[120px] animate-pulse-glow" />
-          <div className="absolute -right-[10%] top-[40%] h-[50vh] w-[50vh] rounded-full bg-brand-gold/5 blur-[100px] animate-float" />
+          <div className="absolute -right-[10%] top-[40%] h-[50vh] w-[50vh] rounded-full bg-brand-gold/5 blur-[100px] animate-float-drift" />
           <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-brand-dark to-transparent" />
         </div>
 
@@ -256,14 +263,14 @@ export default async function Home() {
           </div>
 
           <h1
-            className="mt-6 font-display text-4xl font-bold leading-tight text-white md:text-6xl lg:text-7xl animate-reveal-up"
+            className="mt-6 font-display text-4xl font-bold leading-[1.15] tracking-tight text-white text-balance md:text-6xl lg:text-7xl animate-reveal-up"
             style={{ animationDelay: "300ms" }}
           >
             {"\u0634\u0643\u0631\u0627\u064b \u0644\u0623\u0646\u0643 "}<span className="text-gradient-lime">{"\u0634\u0631\u064a\u0643 \u0641\u064a \u0627\u0644\u062e\u064a\u0631"}</span>
           </h1>
 
           <p
-            className="mx-auto mt-6 max-w-2xl text-base text-white/70 md:text-lg animate-reveal-up"
+            className="mx-auto mt-6 max-w-2xl text-base leading-[1.9] text-white/75 md:text-lg animate-reveal-up"
             style={{ animationDelay: "450ms" }}
           >
             {"بشرائك لقرص المحبة، أنت لم تُمتع نفسك فقط، بل بنيت مستقبلاً لغيرك. أي مبلغ إضافي بالإضافة لأرباح هذا المشروع سيُستخدم لبناء مشاريع أخرى لتشغيل الأرامل والأيتام."}
@@ -295,9 +302,15 @@ export default async function Home() {
         {/* --- STATS SCROLLER (MARQUEE) --- */}
         <section className="mx-auto max-w-7xl py-4">
           <div className="slider-marquee slider-marquee--stats" dir="ltr">
+            <div className="slider-marquee__fade slider-marquee__fade--left" />
+            <div className="slider-marquee__fade slider-marquee__fade--right" />
             <div className="slider-marquee__track">
               {[0, 1].map((copyIndex) => (
-                <div key={`stats-group-${copyIndex}`} className="slider-marquee__group py-4">
+                <div
+                  key={`stats-group-${copyIndex}`}
+                  className="slider-marquee__group py-4"
+                  aria-hidden={copyIndex === 1}
+                >
                   {stats.map((stat, statIndex) => (
                     <div
                       key={`stat-${copyIndex}-${stat.label}-${statIndex}`}
@@ -314,7 +327,7 @@ export default async function Home() {
         </section>
 
         {/* --- MILESTONE CARD --- */}
-        <section className="mx-auto mt-8 max-w-7xl animate-reveal-up" style={{ animationDelay: "1000ms" }}>
+        <section className="mx-auto mt-8 max-w-7xl" data-reveal>
           <div className="group relative overflow-hidden rounded-3xl bg-brand-dark p-8 md:p-12 text-white shadow-2xl">
             <div className="absolute right-0 top-0 h-64 w-64 -translate-y-1/2 translate-x-1/2 rounded-full bg-brand-lime/20 blur-[80px] transition-transform duration-1000 group-hover:scale-125" />
             <div className="absolute left-0 bottom-0 h-40 w-40 translate-y-1/3 -translate-x-1/3 rounded-full bg-white/10 blur-[60px]" />
@@ -370,7 +383,10 @@ export default async function Home() {
         </section>
 
         {/* --- FINANCIAL HIGHLIGHTS --- */}
-        <section className="mx-auto mt-6 max-w-7xl grid gap-6 md:grid-cols-3">
+        <section
+          className="mx-auto mt-6 max-w-7xl grid gap-6 md:grid-cols-3"
+          data-reveal
+        >
           <div className="glass-card md:col-span-2 rounded-3xl p-8 relative overflow-hidden group">
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-brand-lime/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
             <h3 className="font-display text-2xl font-bold text-brand-dark mb-6 relative z-10">{"\u0645\u0644\u062e\u0635 \u0645\u0627\u0644\u064a \u0634\u0641\u0627\u0641"}</h3>
@@ -379,30 +395,30 @@ export default async function Home() {
               <div>
                 <div className="flex justify-between text-sm mb-2">
                   <span className="font-medium">{"\u0633\u0639\u0631 \u0627\u0644\u0642\u0631\u0635"}</span>
-                  <span className="font-bold font-mono">{formatMoney(settings.base_price)}</span>
+                  <span className="font-display font-bold tabular-nums text-brand-dark">{formatMoney(settings.base_price)}</span>
                 </div>
-                <div className="h-2 w-full bg-brand-sand/30 rounded-full overflow-hidden">
-                  <div className="h-full bg-brand-dark w-[20%] rounded-full opacity-60" />
+                <div className="h-2.5 w-full bg-brand-dark/[0.06] rounded-full overflow-hidden shadow-[inset_0_1px_2px_rgba(11,36,22,0.12)]">
+                  <div className="h-full w-[20%] rounded-full bg-gradient-to-l from-brand-dark to-brand-dark/70" />
                 </div>
               </div>
 
               <div>
                 <div className="flex justify-between text-sm mb-2">
                   <span className="font-medium">{"\u0625\u062c\u0645\u0627\u0644\u064a \u0641\u0627\u0626\u0636 \u0627\u0644\u062a\u0628\u0631\u0639\u0627\u062a"}</span>
-                  <span className="font-bold font-mono text-brand-dark">{formatMoney(settings.total_surplus)}</span>
+                  <span className="font-display font-bold tabular-nums text-brand-dark">{formatMoney(settings.total_surplus)}</span>
                 </div>
-                <div className="h-2 w-full bg-brand-sand/30 rounded-full overflow-hidden">
-                  <div className="h-full bg-brand-lime w-[85%] rounded-full" />
+                <div className="h-2.5 w-full bg-brand-dark/[0.06] rounded-full overflow-hidden shadow-[inset_0_1px_2px_rgba(11,36,22,0.12)]">
+                  <div className="h-full w-[85%] rounded-full bg-gradient-to-l from-brand-lime to-[#a8d93f] shadow-[0_0_14px_-2px_rgba(201,242,92,0.8)]" />
                 </div>
               </div>
 
               <div>
                 <div className="flex justify-between text-sm mb-2">
                   <span className="font-medium">{"\u0623\u0643\u0628\u0631 \u062a\u0628\u0631\u0639 \u0641\u0631\u062f\u064a"}</span>
-                  <span className="font-bold font-mono text-brand-gold">{biggestDonationText}</span>
+                  <span className="font-display font-bold tabular-nums text-brand-gold">{biggestDonationText}</span>
                 </div>
-                <div className="h-2 w-full bg-brand-sand/30 rounded-full overflow-hidden">
-                  <div className="h-full bg-brand-gold w-[65%] rounded-full" />
+                <div className="h-2.5 w-full bg-brand-dark/[0.06] rounded-full overflow-hidden shadow-[inset_0_1px_2px_rgba(11,36,22,0.12)]">
+                  <div className="h-full w-[65%] rounded-full bg-gradient-to-l from-brand-gold to-[#c79f3e] shadow-[0_0_14px_-2px_rgba(217,182,90,0.7)]" />
                 </div>
               </div>
             </div>
@@ -410,10 +426,10 @@ export default async function Home() {
             <div className="mt-8 relative z-10">
               <a
                 href="/details"
-                className="inline-flex items-center gap-2 text-sm font-bold text-brand-dark hover:text-brand-lime transition-colors"
+                className="group/details inline-flex items-center gap-2 rounded-lg text-sm font-bold text-brand-dark transition-colors hover:text-brand-lime"
               >
                 {"\u0639\u0631\u0636 \u0627\u0644\u062a\u0641\u0627\u0635\u064a\u0644 \u0627\u0644\u0645\u0627\u0644\u064a\u0629 \u0627\u0644\u0643\u0627\u0645\u0644\u0629"}
-                <svg className="w-4 h-4 rtl:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+                <svg className="w-4 h-4 rtl:rotate-180 transition-transform motion-safe:group-hover/details:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
               </a>
             </div>
           </div>
@@ -442,14 +458,16 @@ export default async function Home() {
           </div>
         </section>
 
+        <div className="section-divider mx-auto my-16 max-w-3xl" aria-hidden="true" />
+
         {/* --- PARTNERS SECTION (LUXURY) --- */}
-        <section id="success-partners" className="relative mx-auto mt-16 max-w-7xl overflow-hidden py-12 rounded-3xl bg-brand-dark/95">
+        <section id="success-partners" className="relative mx-auto max-w-7xl overflow-hidden py-12 rounded-3xl bg-brand-dark/95">
           <div className="absolute top-0 right-0 h-96 w-96 bg-brand-gold/10 blur-[100px] rounded-full pointer-events-none" />
           <div className="absolute bottom-0 left-0 h-72 w-72 bg-brand-lime/5 blur-[80px] rounded-full pointer-events-none" />
 
-          <div className="px-6 text-center mb-12 relative z-10">
+          <div className="px-6 text-center mb-12 relative z-10" data-reveal>
             <span className="inline-block text-brand-gold text-xs tracking-[0.2em] font-bold mb-3 px-3 py-1 bg-brand-gold/10 rounded-full border border-brand-gold/20">{"\u0646\u0642\u0627\u0637 \u0627\u0644\u0628\u064a\u0639"}</span>
-            <h2 className="font-display text-4xl font-bold text-white mb-4">{"\u0634\u0631\u0643\u0627\u0621 \u0627\u0644\u0646\u062c\u0627\u062d"}</h2>
+            <h2 className="font-display text-4xl font-bold text-gradient-gold mb-4 pb-1">{"\u0634\u0631\u0643\u0627\u0621 \u0627\u0644\u0646\u062c\u0627\u062d"}</h2>
             <div className="h-0.5 w-24 bg-gradient-to-r from-transparent via-brand-gold to-transparent mx-auto opacity-70" />
             <p className="text-white/60 mt-4 max-w-lg mx-auto text-sm leading-relaxed">
               {"\u0646\u0641\u062a\u062e\u0631 \u0628\u0634\u0631\u0627\u0643\u062a\u0646\u0627 \u0645\u0639 \u0646\u062e\u0628\u0629 \u0645\u0646 \u0646\u0642\u0627\u0637 \u0627\u0644\u0628\u064a\u0639 \u0627\u0644\u062a\u064a \u0633\u0627\u0647\u0645\u062a \u0641\u064a \u0625\u064a\u0635\u0627\u0644 \u0631\u0633\u0627\u0644\u0629 \u0627\u0644\u0625\u062d\u0633\u0627\u0646"}
@@ -459,30 +477,38 @@ export default async function Home() {
           <div className="relative w-full py-8">
             {partnerItems.length > 0 ? (
               <div className="slider-marquee slider-marquee--partners" dir="ltr">
+                <div className="slider-marquee__fade slider-marquee__fade--left slider-marquee__fade--dark" />
+                <div className="slider-marquee__fade slider-marquee__fade--right slider-marquee__fade--dark" />
                 <div className="slider-marquee__track">
                   {[0, 1].map((copyIndex) => (
-                    <div key={`partner-group-${copyIndex}`} className="slider-marquee__group">
-                      {partnerItems.map((point, pointIndex) => (
+                    <div
+                      key={`partner-group-${copyIndex}`}
+                      className="slider-marquee__group"
+                      aria-hidden={copyIndex === 1}
+                    >
+                      {partnerItems.map((point, pointIndex) => {
+                        const originalIndex = pointIndex % salesPoints.length;
+                        return (
                         <div
-                          key={`partner-${copyIndex}-${point.name}-${pointIndex}`}
-                          className="group relative flex min-w-[300px] items-center gap-5 rounded-2xl border border-white/5 bg-white/[0.03] p-5 backdrop-blur-sm transition-all duration-500 hover:border-brand-gold/30 hover:bg-white/[0.08] hover:shadow-[0_0_30px_rgba(217,182,90,0.1)]"
+                          key={`partner-${copyIndex}-${originalIndex}-${pointIndex}`}
+                          className="group relative flex min-w-[300px] items-center gap-5 rounded-2xl border border-white/5 bg-white/[0.03] p-5 backdrop-blur-sm transition-all duration-500 hover:border-brand-gold/30 hover:bg-white/[0.08] hover:shadow-[0_0_30px_rgba(217,182,90,0.1)] focus-within:border-brand-gold/30 focus-within:bg-white/[0.08] focus-within:shadow-[0_0_30px_rgba(217,182,90,0.1)]"
                           dir="rtl"
                         >
-                          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-brand-gold/20 to-brand-dark/50 border border-brand-gold/20 text-brand-gold font-bold text-xl shadow-inner group-hover:scale-110 transition-transform duration-500">
-                            {(pointIndex % salesPoints.length) + 1}
+                          <div className="badge-foil flex h-14 w-14 shrink-0 items-center justify-center rounded-xl text-brand-gold font-display font-bold text-xl group-hover:scale-110 transition-transform duration-500">
+                            {formatter.format(originalIndex + 1)}
                           </div>
                           <div className="flex flex-col">
                             <span className="text-[10px] text-brand-gold/60 tracking-wider mb-1 font-medium">
-                              {getPartnerLabel(pointIndex)}
+                              {getPartnerLabel(originalIndex)}
                             </span>
-                            <span className="font-display font-bold text-white text-lg tracking-wide group-hover:text-brand-gold transition-colors">{point.name}</span>
+                            <span className="font-display font-bold text-white text-lg tracking-wide group-hover:text-brand-gold group-focus-within:text-brand-gold transition-colors">{point.name}</span>
                           </div>
 
                           {point.phone ? (
                             <a
                               href={telHref(point.phone)}
                               dir="ltr"
-                              className="ms-auto inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-brand-gold/40 bg-brand-gold/10 text-brand-gold shadow-inner transition-all duration-300 hover:scale-110 hover:bg-brand-gold hover:text-brand-dark"
+                              className="ms-auto inline-flex h-12 w-12 md:h-11 md:w-11 shrink-0 items-center justify-center rounded-full border border-brand-gold/40 bg-brand-gold/10 text-brand-gold shadow-inner transition-all duration-300 hover:scale-110 hover:bg-brand-gold hover:text-brand-dark active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold focus-visible:ring-offset-2 focus-visible:ring-offset-brand-dark"
                               aria-label={`اتصال بـ ${point.name}`}
                               title="اتصال مباشر"
                             >
@@ -491,12 +517,13 @@ export default async function Home() {
                               </svg>
                             </a>
                           ) : (
-                            <div className="absolute right-4 top-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
-                              <svg className="w-5 h-5 text-brand-gold/50" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                            <div className="ms-auto opacity-40 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 group-focus-within:opacity-100 group-focus-within:translate-x-0 transition-all duration-300">
+                              <svg className="w-5 h-5 text-brand-gold/60" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
                             </div>
                           )}
                         </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   ))}
                 </div>
@@ -509,12 +536,13 @@ export default async function Home() {
           </div>
         </section>
 
+        <div className="section-divider mx-auto my-16 max-w-3xl" aria-hidden="true" />
+
         {/* --- GALLERY SECTION --- */}
-        <section className="mx-auto mt-16 max-w-7xl">
-          <div className="flex items-center justify-between mb-8">
+        <section className="mx-auto max-w-7xl">
+          <div className="flex items-center justify-between mb-8" data-reveal>
             <h2 className="font-display text-3xl font-bold text-brand-dark">{"\u0645\u0646 \u0627\u0644\u0645\u064a\u062f\u0627\u0646"}</h2>
-            <div className="flex gap-2">
-            </div>
+            <div className="h-px flex-1 mx-6 bg-gradient-to-l from-transparent via-brand-dark/15 to-transparent" />
           </div>
 
           {hasGallery ? (
@@ -558,25 +586,28 @@ export default async function Home() {
         instagramHref="https://www.instagram.com/26_alehsan"
         partnersAnchorId="success-partners"
       />
+      <ScrollReveal />
 
-      <footer className="relative z-10 bg-brand-dark text-white pt-16 pb-8">
-        <div className="mx-auto px-6 max-w-7xl">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-8 text-center md:text-right border-b border-white/10 pb-8">
+      <footer className="relative z-10 overflow-hidden bg-brand-dark text-white pt-16 pb-8 border-t border-brand-lime/15">
+        <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-l from-transparent via-brand-gold/50 to-transparent" />
+        <div aria-hidden="true" className="pointer-events-none absolute -top-24 left-1/2 h-48 w-[40rem] -translate-x-1/2 rounded-full bg-brand-lime/10 blur-[90px]" />
+        <div className="relative mx-auto px-6 max-w-7xl">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-8 text-center md:text-right border-b border-white/[0.08] pb-8">
             <div>
-              <h4 className="font-display text-2xl font-bold text-brand-lime">{"\u0627\u0644\u0625\u062d\u0633\u0627\u0646.. \u0639\u0637\u0627\u0621 \u064a\u062b\u0645\u0631"}</h4>
+              <h4 className="font-display text-2xl font-bold text-gradient-lime">{"\u0627\u0644\u0625\u062d\u0633\u0627\u0646.. \u0639\u0637\u0627\u0621 \u064a\u062b\u0645\u0631"}</h4>
               <p className="mt-2 text-white/60 text-sm max-w-md">{"\u0646\u0633\u0639\u0649 \u0644\u062a\u0645\u0643\u064a\u0646 \u0627\u0644\u0623\u0633\u0631 \u0627\u0644\u0645\u062d\u062a\u0627\u062c\u0629 \u0639\u0628\u0631 \u0645\u0634\u0627\u0631\u064a\u0639 \u062a\u0646\u0645\u0648\u064a\u0629 \u0645\u0633\u062a\u062f\u0627\u0645\u0629\u060c \u0628\u0634\u0641\u0627\u0641\u064a\u0629 \u062a\u0627\u0645\u0629 \u0648\u0634\u0631\u0627\u0643\u0629 \u0645\u062c\u062a\u0645\u0639\u064a\u0629 \u0641\u0627\u0639\u0644\u0629."}</p>
             </div>
             <div className="flex gap-4">
               <a
                 href="https://www.instagram.com/26_alehsan"
-                className="h-12 w-12 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/10 hover:scale-110 transition-all"
+                className="h-12 w-12 rounded-full bg-white/5 flex items-center justify-center transition hover:bg-white/10 motion-safe:hover:scale-110 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-lime focus-visible:ring-offset-2 focus-visible:ring-offset-brand-dark"
                 aria-label="Instagram"
               >
                 <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" /></svg>
               </a>
               <a
                 href="tel:+963947511335"
-                className="h-12 w-12 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/10 hover:scale-110 transition-all"
+                className="h-12 w-12 rounded-full bg-white/5 flex items-center justify-center transition hover:bg-white/10 motion-safe:hover:scale-110 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-lime focus-visible:ring-offset-2 focus-visible:ring-offset-brand-dark"
                 aria-label="Call"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" /></svg>

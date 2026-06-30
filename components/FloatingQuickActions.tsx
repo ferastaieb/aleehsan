@@ -81,14 +81,14 @@ export default function FloatingQuickActions({
     <>
       <div dir="ltr" className="fixed bottom-5 right-4 z-[60] flex items-center gap-2">
         {showPhoneHint ? (
-          <span className="floating-phone-hint rounded-full border border-brand-sand bg-white px-4 py-1 text-xs font-semibold text-brand-dark shadow-md" dir="rtl">
+          <span className="floating-phone-hint pointer-events-none select-none rounded-full border border-brand-sand bg-white px-4 py-1 text-xs font-semibold text-brand-dark shadow-md" dir="rtl">
             للتبرع او الطلب اضغط هنا
           </span>
         ) : null}
         <a
           href={phoneHref}
           dir="ltr"
-          className="inline-flex h-14 w-14 items-center justify-center rounded-full border-2 border-brand-lime/50 bg-white text-brand-dark shadow-[0_20px_40px_-22px_rgba(15,46,28,0.8)] transition hover:-translate-y-1 hover:shadow-[0_24px_45px_-20px_rgba(15,46,28,0.9)]"
+          className="animate-fab-in inline-flex h-14 w-14 items-center justify-center rounded-full border-2 border-brand-lime/50 bg-white text-brand-dark shadow-[0_20px_40px_-22px_rgba(15,46,28,0.8)] transition motion-safe:hover:-translate-y-1 hover:shadow-[0_24px_45px_-20px_rgba(15,46,28,0.9)] active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-dark focus-visible:ring-offset-2 focus-visible:ring-offset-app-background"
           aria-label="الاتصال بنا"
           title="اتصال"
         >
@@ -105,7 +105,7 @@ export default function FloatingQuickActions({
 
       <a
         href={instagramHref}
-        className="fixed bottom-5 left-4 z-[60] inline-flex h-14 w-14 items-center justify-center rounded-full border border-brand-sand bg-white text-brand-dark shadow-[0_20px_40px_-22px_rgba(15,46,28,0.5)] transition hover:-translate-y-1"
+        className="animate-fab-in fixed bottom-5 left-4 z-[60] inline-flex h-14 w-14 items-center justify-center rounded-full border border-brand-sand bg-white text-brand-dark shadow-[0_20px_40px_-22px_rgba(15,46,28,0.5)] transition motion-safe:hover:-translate-y-1 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-dark focus-visible:ring-offset-2 focus-visible:ring-offset-app-background"
         aria-label="Instagram"
         title="Instagram"
       >
@@ -129,7 +129,7 @@ export default function FloatingQuickActions({
         <button
           type="button"
           onClick={jumpToPartners}
-          className="fixed bottom-24 left-1/2 z-[61] -translate-x-1/2 transition-all duration-500 hover:-translate-x-1/2 hover:-translate-y-1 animate-reveal-up"
+          className="animate-fab-in fixed bottom-24 inset-x-0 mx-auto z-[61] flex w-max flex-col items-center rounded-2xl transition-transform duration-300 motion-safe:hover:-translate-y-1 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-lime focus-visible:ring-offset-2 focus-visible:ring-offset-app-background"
           aria-label="الانتقال إلى شركاء النجاح"
           title="شركاء النجاح"
         >
