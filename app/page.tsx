@@ -204,7 +204,13 @@ export default async function Home() {
     salesPoints.length > 0
       ? Math.max(1, Math.ceil(MIN_PARTNER_CARDS / salesPoints.length))
       : 0;
-  const partnerItems = Array.from({ length: partnerRepeat }, () => salesPoints).flat();
+  // The track is LTR while the audience reads RTL: render each cycle
+  // reversed (last→first) so the cards read 1, 2, 3 from the right while
+  // the scroll direction stays unchanged.
+  const reversedSalesPoints = salesPoints
+    .map((point, index) => ({ point, originalIndex: index }))
+    .reverse();
+  const partnerItems = Array.from({ length: partnerRepeat }, () => reversedSalesPoints).flat();
   const arabicPartnerOrdinals = [
     "\u0627\u0644\u0623\u0648\u0644",
     "\u0627\u0644\u062b\u0627\u0646\u064a",
@@ -404,7 +410,7 @@ export default async function Home() {
 
               <div>
                 <div className="flex justify-between text-sm mb-2">
-                  <span className="font-medium">{"\u0625\u062c\u0645\u0627\u0644\u064a \u0641\u0627\u0626\u0636 \u0627\u0644\u062a\u0628\u0631\u0639\u0627\u062a"}</span>
+                  <span className="font-medium">{"\u0627\u0644\u0631\u0635\u064a\u062f"}</span>
                   <span className="font-display font-bold tabular-nums text-brand-dark">{formatMoney(settings.total_surplus)}</span>
                 </div>
                 <div className="h-2.5 w-full bg-brand-dark/[0.06] rounded-full overflow-hidden shadow-[inset_0_1px_2px_rgba(11,36,22,0.12)]">
@@ -461,7 +467,7 @@ export default async function Home() {
         <div className="section-divider mx-auto my-16 max-w-3xl" aria-hidden="true" />
 
         {/* --- PARTNERS SECTION (LUXURY) --- */}
-        <section id="success-partners" className="relative mx-auto max-w-7xl overflow-hidden py-12 rounded-3xl bg-brand-dark/95">
+        <section id="success-partners" className="relative mx-auto max-w-7xl scroll-mt-8 overflow-hidden py-12 rounded-3xl bg-brand-dark/95">
           <div className="absolute top-0 right-0 h-96 w-96 bg-brand-gold/10 blur-[100px] rounded-full pointer-events-none" />
           <div className="absolute bottom-0 left-0 h-72 w-72 bg-brand-lime/5 blur-[80px] rounded-full pointer-events-none" />
 
@@ -486,8 +492,7 @@ export default async function Home() {
                       className="slider-marquee__group"
                       aria-hidden={copyIndex === 1}
                     >
-                      {partnerItems.map((point, pointIndex) => {
-                        const originalIndex = pointIndex % salesPoints.length;
+                      {partnerItems.map(({ point, originalIndex }, pointIndex) => {
                         return (
                         <div
                           key={`partner-${copyIndex}-${originalIndex}-${pointIndex}`}

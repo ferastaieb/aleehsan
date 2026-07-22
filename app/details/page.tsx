@@ -70,7 +70,7 @@ export default async function DetailsPage() {
       <main className="mx-auto max-w-6xl px-6 py-10">
         <section className="grid gap-4 md:grid-cols-3">
           <div className="rounded-2xl border border-brand-sand bg-white p-5 shadow-[0_12px_35px_-25px_rgba(15,46,28,0.35)]">
-            <p className="text-xs text-brand-dark/60">إجمالي فائض التبرعات</p>
+            <p className="text-xs text-brand-dark/60">الرصيد</p>
             <p className="mt-2 font-display text-2xl text-brand-dark">
               {formatMoney(settings.total_surplus)}
             </p>

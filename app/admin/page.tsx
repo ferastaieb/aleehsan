@@ -260,7 +260,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
             </div>
             <div className="grid gap-4 md:grid-cols-2">
               <label className="flex flex-col gap-2 text-sm">
-                إجمالي فائض التبرعات
+                الرصيد
                 <input
                   name="total_surplus"
                   type="number"
