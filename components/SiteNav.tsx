@@ -79,7 +79,7 @@ export default function SiteNav() {
     <nav
       data-sitenav
       aria-label="التنقل الرئيسي"
-      className="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-brand-dark/95 backdrop-blur-md pb-[env(safe-area-inset-bottom)] md:sticky md:top-0 md:bottom-auto md:border-t-0 md:border-b md:border-white/10"
+      className="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-brand-dark/95 backdrop-blur-md pt-1.5 pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-[0_-10px_30px_-15px_rgba(0,0,0,0.45)] md:sticky md:top-0 md:bottom-auto md:border-t-0 md:border-b md:border-white/10 md:py-0 md:shadow-none"
     >
       <div className="mx-auto flex max-w-7xl items-center md:gap-8 md:px-6">
         <Link
@@ -96,24 +96,20 @@ export default function SiteNav() {
                 key={item.href}
                 href={item.href}
                 aria-current={active ? "page" : undefined}
-                className={`flex flex-col items-center gap-1 px-1 py-2.5 text-[11px] font-medium transition-colors md:flex-row md:gap-2 md:rounded-full md:px-4 md:py-2 md:text-sm ${
+                className={`flex flex-col items-center gap-1 px-0.5 py-1 text-[10px] font-medium leading-none transition-colors md:flex-row md:gap-2 md:rounded-full md:px-4 md:py-2 md:text-sm md:leading-normal ${
                   active
                     ? "text-brand-lime md:bg-brand-lime/10"
                     : "text-white/60 hover:text-white"
                 }`}
               >
                 <span
-                  className={`transition-transform ${active ? "scale-110 md:scale-100" : ""}`}
+                  className={`flex h-8 w-12 items-center justify-center rounded-full transition-colors md:h-auto md:w-auto md:rounded-none ${
+                    active ? "bg-brand-lime/15 md:bg-transparent" : ""
+                  }`}
                 >
                   {item.icon}
                 </span>
-                <span>{item.label}</span>
-                <span
-                  aria-hidden="true"
-                  className={`h-1 w-1 rounded-full transition-opacity md:hidden ${
-                    active ? "bg-brand-lime opacity-100" : "opacity-0"
-                  }`}
-                />
+                <span className="whitespace-nowrap">{item.label}</span>
               </Link>
             );
           })}

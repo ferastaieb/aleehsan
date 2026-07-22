@@ -22,7 +22,7 @@ function StatCard({ label, value, icon }: StatCardProps) {
         {icon}
       </div>
       <p className="mt-4 text-xs font-medium tracking-wide text-brand-dark/55">{label}</p>
-      <p className="mt-1 font-display text-[1.7rem] font-bold leading-none tracking-tight text-brand-dark tabular-nums">
+      <p className="mt-1 font-display text-[1.7rem] font-bold leading-snug tracking-tight text-brand-dark tabular-nums">
         {value}
       </p>
     </div>
@@ -182,7 +182,9 @@ export default async function Home() {
       <FireworksIntro />
 
       {/* --- HERO SECTION --- */}
-      <header className="relative flex min-h-[90vh] flex-col overflow-hidden bg-brand-dark pb-16 pt-24 md:min-h-[85vh] md:justify-center md:pb-0 md:pt-0">
+      {/* Natural height on phones: a fixed vh minimum left a large empty
+          dark band between the hero content and the stats cards. */}
+      <header className="relative flex flex-col overflow-hidden bg-brand-dark pb-20 pt-16 md:min-h-[85vh] md:justify-center md:pb-0 md:pt-0">
         {/* Abstract Background Elements */}
         <div className="absolute inset-0 z-0">
           <div className="absolute -left-[20%] -top-[20%] h-[60vh] w-[60vh] rounded-full bg-brand-lime/10 blur-[120px] animate-pulse-glow" />
