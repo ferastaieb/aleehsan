@@ -52,6 +52,14 @@ a {
   text-decoration: none;
 }
 
+/* Keep page content clear of the fixed bottom tab bar on phones.
+   Scoped with :has so admin (no nav) gets no dead space. */
+@media (max-width: 767px) {
+  body:has([data-sitenav]) {
+    padding-bottom: calc(5rem + env(safe-area-inset-bottom));
+  }
+}
+
 /* --- Utilities --- */
 
 .glass-card {
@@ -238,10 +246,6 @@ a {
   --slider-duration: 30s;
 }
 
-.slider-marquee--partners {
-  --slider-duration: 52s;
-}
-
 .slider-marquee__track {
   display: flex;
   width: max-content;
@@ -249,8 +253,6 @@ a {
   animation: slider-marquee-scroll var(--slider-duration, 30s) linear infinite;
 }
 
-.slider-marquee--partners:hover .slider-marquee__track,
-.slider-marquee--partners:focus-within .slider-marquee__track,
 .slider-marquee--stats:hover .slider-marquee__track,
 .slider-marquee--stats:focus-within .slider-marquee__track {
   animation-play-state: paused;

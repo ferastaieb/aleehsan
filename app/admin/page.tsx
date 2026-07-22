@@ -10,9 +10,11 @@ import AdminSaveButton from "./AdminSaveButton";
 import {
   addDetailEntry,
   addGalleryItem,
+  addProduct,
   addStory,
   deleteDetailEntry,
   deleteGalleryItem,
+  deleteProduct,
   deleteStory,
   loginAdmin,
   logoutAdmin,
@@ -32,6 +34,8 @@ type AdminPageProps = {
     detail_deleted?: string;
     gallery_added?: string;
     gallery_deleted?: string;
+    product_added?: string;
+    product_deleted?: string;
   };
 };
 
@@ -166,7 +170,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
     );
   }
 
-  const { settings, stories, gallery } = await getDashboardData();
+  const { settings, stories, gallery, products } = await getDashboardData();
   const details = await loadDetails();
   const saved = searchParams?.saved === "1";
   const added = searchParams?.added === "1";
@@ -175,6 +179,8 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
   const detailDeleted = searchParams?.detail_deleted === "1";
   const galleryAdded = searchParams?.gallery_added === "1";
   const galleryDeleted = searchParams?.gallery_deleted === "1";
+  const productAdded = searchParams?.product_added === "1";
+  const productDeleted = searchParams?.product_deleted === "1";
   const updatedTimestamp = Date.parse(settings.updated_at);
   const updatedAt = Number.isNaN(updatedTimestamp)
     ? "—"
@@ -245,6 +251,16 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
         {galleryDeleted ? (
           <div className="rounded-2xl border border-brand-sand bg-brand-ivory px-4 py-3 text-sm text-brand-dark">
             تم حذف عنصر من المعرض.
+          </div>
+        ) : null}
+        {productAdded ? (
+          <div className="rounded-2xl border border-brand-lime/40 bg-brand-lime/10 px-4 py-3 text-sm text-brand-dark">
+            تمت إضافة منتج جديد.
+          </div>
+        ) : null}
+        {productDeleted ? (
+          <div className="rounded-2xl border border-brand-sand bg-brand-ivory px-4 py-3 text-sm text-brand-dark">
+            تم حذف المنتج.
           </div>
         ) : null}
 
@@ -346,6 +362,106 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
           </section>
 
           <section className="rounded-3xl bg-white p-6 shadow-[0_20px_50px_-35px_rgba(15,46,28,0.3)]">
+            <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div>
+                <h2 className="font-display text-xl text-brand-dark">
+                  المنتجات
+                </h2>
+                <p className="text-sm text-brand-dark/60">
+                  أضف منتجات المبادرة مع سعر القطعة وعدد القطع المباعة، وتظهر
+                  للزوار في صفحة المنتجات.
+                </p>
+              </div>
+              <button
+                type="submit"
+                formAction={addProduct}
+                className="rounded-full border border-brand-dark/10 bg-brand-white px-4 py-2 text-sm text-brand-dark shadow-sm"
+              >
+                إضافة منتج جديد
+              </button>
+            </div>
+            <div className="grid gap-6">
+              {products.map((product) => (
+                <div
+                  key={product.id}
+                  className="grid gap-4 rounded-2xl border border-brand-sand bg-brand-ivory p-4 md:grid-cols-[140px_1fr]"
+                >
+                  <input type="hidden" name="product_id" value={product.id} />
+                  <img
+                    src={product.image_url || "/place.png"}
+                    alt={product.name}
+                    className="h-32 w-full rounded-xl object-cover"
+                    loading="lazy"
+                  />
+                  <div className="grid gap-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-brand-dark/60">
+                        منتج رقم {product.position}
+                      </span>
+                      <button
+                        type="submit"
+                        formAction={deleteProduct.bind(null, product.id)}
+                        className="rounded-full border border-red-200 px-3 py-1 text-xs text-red-600 transition hover:bg-red-50"
+                      >
+                        حذف المنتج
+                      </button>
+                    </div>
+                    <label className="flex flex-col gap-2 text-sm">
+                      اسم المنتج
+                      <input
+                        name={`product_name_${product.id}`}
+                        type="text"
+                        defaultValue={product.name}
+                        className="rounded-xl border border-brand-sand bg-white px-4 py-2"
+                      />
+                    </label>
+                    <label className="flex flex-col gap-2 text-sm">
+                      وصف مختصر
+                      <textarea
+                        name={`product_description_${product.id}`}
+                        rows={2}
+                        defaultValue={product.description}
+                        className="rounded-xl border border-brand-sand bg-white px-4 py-2"
+                      />
+                    </label>
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <label className="flex flex-col gap-2 text-sm">
+                        سعر القطعة (ليرة)
+                        <input
+                          name={`product_price_${product.id}`}
+                          type="number"
+                          min="0"
+                          defaultValue={product.price}
+                          className="rounded-xl border border-brand-sand bg-white px-4 py-2"
+                        />
+                      </label>
+                      <label className="flex flex-col gap-2 text-sm">
+                        عدد القطع المباعة
+                        <input
+                          name={`product_sold_${product.id}`}
+                          type="number"
+                          min="0"
+                          defaultValue={product.sold}
+                          className="rounded-xl border border-brand-sand bg-white px-4 py-2"
+                        />
+                      </label>
+                    </div>
+                    <label className="flex flex-col gap-2 text-sm">
+                      رابط صورة المنتج
+                      <input
+                        name={`product_image_${product.id}`}
+                        type="text"
+                        defaultValue={product.image_url}
+                        className="rounded-xl border border-brand-sand bg-white px-4 py-2"
+                      />
+                    </label>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="rounded-3xl bg-white p-6 shadow-[0_20px_50px_-35px_rgba(15,46,28,0.3)]">
             <div className="mb-6">
               <h2 className="font-display text-xl text-brand-dark">
                 شريط حالة المشروع القادم
@@ -416,7 +532,8 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
                   بنود المدخلات والمخرجات
                 </h2>
                 <p className="text-sm text-brand-dark/60">
-                  تظهر هذه البنود في صفحة التفاصيل عند فتحها للعلن.
+                  المدخول والتبرع والدعم العيني تظهر في صفحة الداخل، والصرف
+                  يظهر في صفحة الخارج.
                 </p>
               </div>
               <button
@@ -458,6 +575,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
                         className="rounded-xl border border-brand-sand bg-white px-4 py-2"
                       >
                         <option value="income">مدخول</option>
+                        <option value="donation">تبرع</option>
                         <option value="expense">صرف</option>
                         <option value="in-kind">دعم عيني</option>
                       </select>

@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Noto_Sans_Arabic, Tajawal } from "next/font/google";
+import SiteNav from "@/components/SiteNav";
 import "./globals.css";
 
 const notoSansArabic = Noto_Sans_Arabic({
@@ -37,6 +38,7 @@ export default function RootLayout({
       <body
         className={`${notoSansArabic.variable} ${tajawal.variable} antialiased`}
       >
+        <SiteNav />
         {children}
       </body>
     </html>

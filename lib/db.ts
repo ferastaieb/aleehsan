@@ -15,6 +15,7 @@ import type {
   DetailKind,
   GalleryItem,
   GalleryMediaType,
+  Product,
   Settings,
   Store,
   Story,
@@ -98,10 +99,22 @@ const defaultGallery: GalleryItem[] = [
   },
 ];
 
+const defaultProducts: Product[] = [
+  {
+    id: 1,
+    name: "قرص المحبة",
+    description: "قرص شهي يُصنع بأيدي الأرامل والأيتام، وريعه بالكامل لتشغيلهم.",
+    image_url: "/place.png",
+    price: 12,
+    sold: 5200,
+    position: 1,
+  },
+];
+
 const defaultDetails: DetailEntry[] = [
   {
     id: 1,
-    kind: "income",
+    kind: "donation",
     description: "تبرع فاعل خير",
     amount: 150000,
     created_at: new Date().toISOString(),
@@ -187,6 +200,7 @@ async function readStoreItem(): Promise<Store | null> {
     settings: item.settings as Settings,
     stories: item.stories as Story[],
     gallery: item.gallery as GalleryItem[],
+    products: item.products as Product[],
   };
 }
 
@@ -199,6 +213,7 @@ async function writeStoreItem(store: Store): Promise<void> {
         settings: store.settings,
         stories: store.stories,
         gallery: store.gallery,
+        products: store.products,
       },
     }),
   );
@@ -366,7 +381,38 @@ function normalizeStore(store: Store | null) {
     position: index + 1,
   }));
 
-  return { store: { settings, stories, gallery }, changed };
+  const productsInput = Array.isArray(store?.products)
+    ? store?.products
+    : defaultProducts;
+  if (!Array.isArray(store?.products)) {
+    changed = true;
+  }
+  const normalizedProducts = productsInput.map((product, index) => {
+    const fallback = defaultProducts[index] ?? defaultProducts[0];
+    return {
+      id: safeNumber(product?.id, fallback?.id ?? index + 1),
+      name: safeText(product?.name, fallback?.name ?? "منتج جديد"),
+      description: safeText(
+        product?.description,
+        fallback?.description ?? "تفاصيل المنتج ستضاف قريباً.",
+      ),
+      image_url: safeText(
+        product?.image_url,
+        fallback?.image_url ?? "/place.png",
+      ),
+      price: safeNumber(product?.price, fallback?.price ?? 0),
+      sold: safeNumber(product?.sold, fallback?.sold ?? 0),
+      position: safeNumber(product?.position, index + 1),
+    };
+  });
+
+  normalizedProducts.sort((first, second) => first.position - second.position);
+  const products = normalizedProducts.map((product, index) => ({
+    ...product,
+    position: index + 1,
+  }));
+
+  return { store: { settings, stories, gallery, products }, changed };
 }
 
 function normalizeDetails(details: DetailEntry[] | null) {
@@ -433,7 +479,12 @@ function normalizeDetails(details: DetailEntry[] | null) {
     return trimmed;
   };
   const safeKind = (value: unknown, fallback: DetailKind): DetailKind => {
-    if (value === "income" || value === "expense" || value === "in-kind") {
+    if (
+      value === "income" ||
+      value === "donation" ||
+      value === "expense" ||
+      value === "in-kind"
+    ) {
       return value;
     }
     changed = true;

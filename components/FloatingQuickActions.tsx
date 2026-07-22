@@ -5,17 +5,13 @@ import { useEffect, useState, useRef } from "react";
 type FloatingQuickActionsProps = {
   phoneHref: string;
   instagramHref: string;
-  partnersAnchorId: string;
 };
 
 export default function FloatingQuickActions({
   phoneHref,
   instagramHref,
-  partnersAnchorId,
 }: FloatingQuickActionsProps) {
-  const [showPartnersJump, setShowPartnersJump] = useState(false);
   const [showPhoneHint, setShowPhoneHint] = useState(true);
-  const hideTimerRef = useRef<NodeJS.Timeout | null>(null);
   const phoneHintTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -30,56 +26,10 @@ export default function FloatingQuickActions({
     };
   }, []);
 
-  useEffect(() => {
-    const SHOW_AFTER_SCROLL = 380;
-    const REACHED_SECTION_TOP_FACTOR = 0.45;
-
-    const handleScroll = () => {
-      const hasScrolledEnough = window.scrollY > SHOW_AFTER_SCROLL;
-      const target = document.getElementById(partnersAnchorId);
-      const reachedPartnersSection = target
-        ? target.getBoundingClientRect().top <=
-        window.innerHeight * REACHED_SECTION_TOP_FACTOR
-        : false;
-
-      const shouldShow = hasScrolledEnough && !reachedPartnersSection;
-
-      setShowPartnersJump((prev) => {
-        if (shouldShow && !prev) {
-          // It just appeared, set a timer to hide it
-          if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
-          hideTimerRef.current = setTimeout(() => {
-            setShowPartnersJump(false);
-          }, 3000); // Hide after 3 seconds
-          return true;
-        } else if (!shouldShow) {
-          if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
-          return false;
-        }
-        return prev;
-      });
-    };
-
-    handleScroll();
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-      if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
-    };
-  }, [partnersAnchorId]);
-
-  const jumpToPartners = () => {
-    const target = document.getElementById(partnersAnchorId);
-    if (!target) {
-      return;
-    }
-    target.scrollIntoView({ behavior: "smooth", block: "start" });
-    setShowPartnersJump(false);
-  };
-
   return (
     <>
-      <div dir="ltr" className="fixed bottom-5 right-4 z-[60] flex items-center gap-2">
+      {/* bottom-24 on phones keeps the buttons clear of the bottom tab bar */}
+      <div dir="ltr" className="fixed bottom-24 right-4 z-[60] flex items-center gap-2 md:bottom-5">
         {showPhoneHint ? (
           <span className="floating-phone-hint pointer-events-none select-none rounded-full border border-brand-sand bg-white px-4 py-1 text-xs font-semibold text-brand-dark shadow-md" dir="rtl">
             للتبرع او الطلب اضغط هنا
@@ -105,7 +55,7 @@ export default function FloatingQuickActions({
 
       <a
         href={instagramHref}
-        className="animate-fab-in fixed bottom-5 left-4 z-[60] inline-flex h-14 w-14 items-center justify-center rounded-full border border-brand-sand bg-white text-brand-dark shadow-[0_20px_40px_-22px_rgba(15,46,28,0.5)] transition motion-safe:hover:-translate-y-1 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-dark focus-visible:ring-offset-2 focus-visible:ring-offset-app-background"
+        className="animate-fab-in fixed bottom-24 left-4 z-[60] inline-flex h-14 w-14 items-center justify-center rounded-full border border-brand-sand bg-white text-brand-dark shadow-[0_20px_40px_-22px_rgba(15,46,28,0.5)] transition motion-safe:hover:-translate-y-1 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-dark focus-visible:ring-offset-2 focus-visible:ring-offset-app-background md:bottom-5"
         aria-label="Instagram"
         title="Instagram"
       >
@@ -124,34 +74,6 @@ export default function FloatingQuickActions({
           <circle cx="17.2" cy="6.8" r="1" fill="currentColor" stroke="none" />
         </svg>
       </a>
-
-      {showPartnersJump ? (
-        <button
-          type="button"
-          onClick={jumpToPartners}
-          className="animate-fab-in fixed bottom-24 inset-x-0 mx-auto z-[61] flex w-max flex-col items-center rounded-2xl transition-transform duration-300 motion-safe:hover:-translate-y-1 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-lime focus-visible:ring-offset-2 focus-visible:ring-offset-app-background"
-          aria-label="الانتقال إلى شركاء النجاح"
-          title="شركاء النجاح"
-        >
-          <span className="mb-1 block rounded-full border border-brand-sand bg-white px-3 py-1 text-xs font-semibold text-brand-dark shadow-md whitespace-nowrap">
-            شركاء النجاح
-          </span>
-          <span className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-brand-dark text-white shadow-[0_18px_38px_-22px_rgba(15,46,28,0.9)] mx-auto animate-pulse-glow">
-            <svg
-              className="h-5 w-5"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M12 5v14" />
-              <path d="m19 12-7 7-7-7" />
-            </svg>
-          </span>
-        </button>
-      ) : null}
     </>
   );
 }

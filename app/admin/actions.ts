@@ -40,9 +40,14 @@ function toNullableNumber(
 
 function toDetailKind(
   value: FormDataEntryValue | null,
-  fallback: "income" | "expense" | "in-kind",
+  fallback: "income" | "donation" | "expense" | "in-kind",
 ) {
-  if (value === "income" || value === "expense" || value === "in-kind") {
+  if (
+    value === "income" ||
+    value === "donation" ||
+    value === "expense" ||
+    value === "in-kind"
+  ) {
     return value;
   }
   return fallback;
@@ -249,6 +254,49 @@ export async function updateAdminData(formData: FormData) {
     });
   }
 
+  const productIds = formData
+    .getAll("product_id")
+    .map((value) => Number(value))
+    .filter((value) => Number.isFinite(value));
+
+  if (productIds.length > 0) {
+    const ids = new Set(productIds);
+    store.products = store.products.map((product) => {
+      if (!ids.has(product.id)) {
+        return product;
+      }
+      const name = toText(
+        formData.get(`product_name_${product.id}`),
+        product.name || "منتج جديد",
+      );
+      const description = toText(
+        formData.get(`product_description_${product.id}`),
+        product.description || "تفاصيل المنتج ستضاف قريباً.",
+      );
+      const imageUrl = toText(
+        formData.get(`product_image_${product.id}`),
+        product.image_url || "/place.png",
+      );
+      const price = toNumber(
+        formData.get(`product_price_${product.id}`),
+        product.price,
+      );
+      const sold = toNumber(
+        formData.get(`product_sold_${product.id}`),
+        product.sold,
+      );
+
+      return {
+        ...product,
+        name,
+        description,
+        image_url: imageUrl,
+        price,
+        sold,
+      };
+    });
+  }
+
   const detailIds = formData
     .getAll("detail_id")
     .map((value) => Number(value))
@@ -287,8 +335,59 @@ export async function updateAdminData(formData: FormData) {
   await saveDetails(nextDetails);
   revalidatePath("/");
   revalidatePath("/admin");
-  revalidatePath("/details");
+  revalidatePath("/income");
+  revalidatePath("/expenses");
+  revalidatePath("/products");
+  revalidatePath("/partners");
   redirect("/admin?saved=1");
+}
+
+export async function addProduct() {
+  await requireAuth();
+  const store = await loadStore();
+
+  const nextId = store.products.reduce(
+    (maxId, product) => Math.max(maxId, product.id),
+    0,
+  );
+  const nextPosition = store.products.reduce(
+    (maxPosition, product) => Math.max(maxPosition, product.position),
+    0,
+  );
+
+  store.products.push({
+    id: nextId + 1,
+    name: "منتج جديد",
+    description: "تفاصيل المنتج ستضاف قريباً.",
+    image_url: "/place.png",
+    price: 0,
+    sold: 0,
+    position: nextPosition + 1,
+  });
+
+  await saveStore(store);
+  revalidatePath("/products");
+  revalidatePath("/admin");
+  redirect("/admin?product_added=1");
+}
+
+export async function deleteProduct(productId: number) {
+  await requireAuth();
+  const store = await loadStore();
+
+  if (!Number.isFinite(productId)) {
+    redirect("/admin");
+  }
+
+  store.products = store.products.filter((product) => product.id !== productId);
+  store.products = store.products
+    .sort((first, second) => first.position - second.position)
+    .map((product, index) => ({ ...product, position: index + 1 }));
+
+  await saveStore(store);
+  revalidatePath("/products");
+  revalidatePath("/admin");
+  redirect("/admin?product_deleted=1");
 }
 
 export async function addStory() {
@@ -399,7 +498,8 @@ export async function addDetailEntry() {
 
   await saveDetails(details);
   revalidatePath("/admin");
-  revalidatePath("/details");
+  revalidatePath("/income");
+  revalidatePath("/expenses");
   redirect("/admin?detail_added=1");
 }
 
@@ -414,6 +514,7 @@ export async function deleteDetailEntry(detailId: number) {
   const nextDetails = details.filter((entry) => entry.id !== detailId);
   await saveDetails(nextDetails);
   revalidatePath("/admin");
-  revalidatePath("/details");
+  revalidatePath("/income");
+  revalidatePath("/expenses");
   redirect("/admin?detail_deleted=1");
 }

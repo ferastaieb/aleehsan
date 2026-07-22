@@ -31,25 +31,6 @@ function StatCard({ label, value, icon }: StatCardProps) {
 
 const VIDEO_FILE_PATTERN = /\.(mp4|webm|ogg)(\?.*)?$/i;
 
-type SalesPoint = { name: string; phone: string | null };
-
-function parseSalesPoint(line: string): SalesPoint {
-  const separatorIndex = line.indexOf("|");
-  if (separatorIndex === -1) {
-    return { name: line.trim(), phone: null };
-  }
-  const name = line.slice(0, separatorIndex).trim();
-  const rawPhone = line.slice(separatorIndex + 1).trim();
-  return {
-    name: name || rawPhone,
-    phone: rawPhone || null,
-  };
-}
-
-function telHref(phone: string): string {
-  return `tel:${phone.replace(/[^\d+]/g, "")}`;
-}
-
 function getVideoEmbedUrl(url: string): string | null {
   try {
     const parsed = new URL(url);
@@ -133,19 +114,13 @@ export default async function Home() {
   const formatter = new Intl.NumberFormat("ar-SA");
   const hasGallery = Array.isArray(gallery) && gallery.length > 0;
 
-  const salesPoints: SalesPoint[] = settings.sales_points
-    ? settings.sales_points
-      .split("\n")
-      .map((point) => point.trim())
-      .filter(Boolean)
-      .map(parseSalesPoint)
-      .filter((point) => point.name.length > 0)
-    : [];
-
   const formatMoney = (value: number) => `${formatter.format(value)} \u0644\u064a\u0631\u0629`;
   let biggestDonation: number | null = null;
   for (const entry of details) {
-    if (entry.kind === "income" && entry.amount !== null) {
+    if (
+      (entry.kind === "donation" || entry.kind === "income") &&
+      entry.amount !== null
+    ) {
       biggestDonation =
         biggestDonation === null
           ? entry.amount
@@ -195,40 +170,6 @@ export default async function Home() {
       ),
     },
   ];
-  // Repeat the FULL unique partner list a whole number of times so every
-  // rendered group contains complete cycles. A partial tail (e.g. padding 4
-  // partners up to 6 => [1,2,3,4,1,2]) made the seam read as a 1↔2 "bounce";
-  // repeating whole cycles keeps the infinite scroll seamless.
-  const MIN_PARTNER_CARDS = 6;
-  const partnerRepeat =
-    salesPoints.length > 0
-      ? Math.max(1, Math.ceil(MIN_PARTNER_CARDS / salesPoints.length))
-      : 0;
-  // The track is LTR while the audience reads RTL: render each cycle
-  // reversed (last→first) so the cards read 1, 2, 3 from the right while
-  // the scroll direction stays unchanged.
-  const reversedSalesPoints = salesPoints
-    .map((point, index) => ({ point, originalIndex: index }))
-    .reverse();
-  const partnerItems = Array.from({ length: partnerRepeat }, () => reversedSalesPoints).flat();
-  const arabicPartnerOrdinals = [
-    "\u0627\u0644\u0623\u0648\u0644",
-    "\u0627\u0644\u062b\u0627\u0646\u064a",
-    "\u0627\u0644\u062b\u0627\u0644\u062b",
-    "\u0627\u0644\u0631\u0627\u0628\u0639",
-    "\u0627\u0644\u062e\u0627\u0645\u0633",
-    "\u0627\u0644\u0633\u0627\u062f\u0633",
-    "\u0627\u0644\u0633\u0627\u0628\u0639",
-    "\u0627\u0644\u062b\u0627\u0645\u0646",
-    "\u0627\u0644\u062a\u0627\u0633\u0639",
-    "\u0627\u0644\u0639\u0627\u0634\u0631",
-  ] as const;
-  const getPartnerLabel = (index: number) => {
-    const ordinal = arabicPartnerOrdinals[index];
-    if (ordinal) return `\u0627\u0644\u0634\u0631\u064a\u0643 ${ordinal}`;
-    return `\u0627\u0644\u0634\u0631\u064a\u0643 \u0631\u0642\u0645 ${formatter.format(index + 1)}`;
-  };
-
   return (
     <div className="min-h-screen bg-app-background text-app-foreground selection:bg-brand-lime selection:text-brand-dark">
       {/* Without JS, never leave scroll-reveal content hidden. */}
@@ -429,12 +370,19 @@ export default async function Home() {
               </div>
             </div>
 
-            <div className="mt-8 relative z-10">
+            <div className="mt-8 relative z-10 flex flex-wrap gap-x-6 gap-y-2">
               <a
-                href="/details"
+                href="/income"
+                className="group/income inline-flex items-center gap-2 rounded-lg text-sm font-bold text-brand-dark transition-colors hover:text-brand-lime"
+              >
+                {"تفاصيل الداخل والتبرعات"}
+                <svg className="w-4 h-4 rtl:rotate-180 transition-transform motion-safe:group-hover/income:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+              </a>
+              <a
+                href="/expenses"
                 className="group/details inline-flex items-center gap-2 rounded-lg text-sm font-bold text-brand-dark transition-colors hover:text-brand-lime"
               >
-                {"\u0639\u0631\u0636 \u0627\u0644\u062a\u0641\u0627\u0635\u064a\u0644 \u0627\u0644\u0645\u0627\u0644\u064a\u0629 \u0627\u0644\u0643\u0627\u0645\u0644\u0629"}
+                {"\u062a\u0641\u0627\u0635\u064a\u0644 \u0627\u0644\u062e\u0627\u0631\u062c \u0648\u0627\u0644\u0645\u0635\u0631\u0648\u0641\u0627\u062a"}
                 <svg className="w-4 h-4 rtl:rotate-180 transition-transform motion-safe:group-hover/details:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
               </a>
             </div>
@@ -461,83 +409,6 @@ export default async function Home() {
                 {"\u0627\u0644\u0647\u062f\u0641 \u0644\u064a\u0633 \u0641\u0642\u0637 \u062c\u0645\u0639 \u0627\u0644\u0645\u0627\u0644\u060c \u0628\u0644 \u0628\u0646\u0627\u0621 \u062b\u0642\u0629 \u0648\u0646\u0645\u0648\u0630\u062c \u064a\u062d\u062a\u0630\u0649 \u0628\u0647 \u0641\u064a \u0627\u0644\u0639\u0645\u0644 \u0627\u0644\u062e\u064a\u0631\u064a \u0627\u0644\u0645\u0633\u062a\u062f\u0627\u0645."}
               </p>
             </div>
-          </div>
-        </section>
-
-        <div className="section-divider mx-auto my-16 max-w-3xl" aria-hidden="true" />
-
-        {/* --- PARTNERS SECTION (LUXURY) --- */}
-        <section id="success-partners" className="relative mx-auto max-w-7xl scroll-mt-8 overflow-hidden py-12 rounded-3xl bg-brand-dark/95">
-          <div className="absolute top-0 right-0 h-96 w-96 bg-brand-gold/10 blur-[100px] rounded-full pointer-events-none" />
-          <div className="absolute bottom-0 left-0 h-72 w-72 bg-brand-lime/5 blur-[80px] rounded-full pointer-events-none" />
-
-          <div className="px-6 text-center mb-12 relative z-10" data-reveal>
-            <span className="inline-block text-brand-gold text-xs tracking-[0.2em] font-bold mb-3 px-3 py-1 bg-brand-gold/10 rounded-full border border-brand-gold/20">{"\u0646\u0642\u0627\u0637 \u0627\u0644\u0628\u064a\u0639"}</span>
-            <h2 className="font-display text-4xl font-bold text-gradient-gold mb-4 pb-1">{"\u0634\u0631\u0643\u0627\u0621 \u0627\u0644\u0646\u062c\u0627\u062d"}</h2>
-            <div className="h-0.5 w-24 bg-gradient-to-r from-transparent via-brand-gold to-transparent mx-auto opacity-70" />
-            <p className="text-white/60 mt-4 max-w-lg mx-auto text-sm leading-relaxed">
-              {"\u0646\u0641\u062a\u062e\u0631 \u0628\u0634\u0631\u0627\u0643\u062a\u0646\u0627 \u0645\u0639 \u0646\u062e\u0628\u0629 \u0645\u0646 \u0646\u0642\u0627\u0637 \u0627\u0644\u0628\u064a\u0639 \u0627\u0644\u062a\u064a \u0633\u0627\u0647\u0645\u062a \u0641\u064a \u0625\u064a\u0635\u0627\u0644 \u0631\u0633\u0627\u0644\u0629 \u0627\u0644\u0625\u062d\u0633\u0627\u0646"}
-            </p>
-          </div>
-
-          <div className="relative w-full py-8">
-            {partnerItems.length > 0 ? (
-              <div className="slider-marquee slider-marquee--partners" dir="ltr">
-                <div className="slider-marquee__fade slider-marquee__fade--left slider-marquee__fade--dark" />
-                <div className="slider-marquee__fade slider-marquee__fade--right slider-marquee__fade--dark" />
-                <div className="slider-marquee__track">
-                  {[0, 1].map((copyIndex) => (
-                    <div
-                      key={`partner-group-${copyIndex}`}
-                      className="slider-marquee__group"
-                      aria-hidden={copyIndex === 1}
-                    >
-                      {partnerItems.map(({ point, originalIndex }, pointIndex) => {
-                        return (
-                        <div
-                          key={`partner-${copyIndex}-${originalIndex}-${pointIndex}`}
-                          className="group relative flex min-w-[300px] items-center gap-5 rounded-2xl border border-white/5 bg-white/[0.03] p-5 backdrop-blur-sm transition-all duration-500 hover:border-brand-gold/30 hover:bg-white/[0.08] hover:shadow-[0_0_30px_rgba(217,182,90,0.1)] focus-within:border-brand-gold/30 focus-within:bg-white/[0.08] focus-within:shadow-[0_0_30px_rgba(217,182,90,0.1)]"
-                          dir="rtl"
-                        >
-                          <div className="badge-foil flex h-14 w-14 shrink-0 items-center justify-center rounded-xl text-brand-gold font-display font-bold text-xl group-hover:scale-110 transition-transform duration-500">
-                            {formatter.format(originalIndex + 1)}
-                          </div>
-                          <div className="flex flex-col">
-                            <span className="text-[10px] text-brand-gold/60 tracking-wider mb-1 font-medium">
-                              {getPartnerLabel(originalIndex)}
-                            </span>
-                            <span className="font-display font-bold text-white text-lg tracking-wide group-hover:text-brand-gold group-focus-within:text-brand-gold transition-colors">{point.name}</span>
-                          </div>
-
-                          {point.phone ? (
-                            <a
-                              href={telHref(point.phone)}
-                              dir="ltr"
-                              className="ms-auto inline-flex h-12 w-12 md:h-11 md:w-11 shrink-0 items-center justify-center rounded-full border border-brand-gold/40 bg-brand-gold/10 text-brand-gold shadow-inner transition-all duration-300 hover:scale-110 hover:bg-brand-gold hover:text-brand-dark active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold focus-visible:ring-offset-2 focus-visible:ring-offset-brand-dark"
-                              aria-label={`اتصال بـ ${point.name}`}
-                              title="اتصال مباشر"
-                            >
-                              <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                                <path d="M6.54 4.98a1.5 1.5 0 0 1 1.57-.34l2.2.73a1.5 1.5 0 0 1 1.02 1.24l.19 2.23a1.5 1.5 0 0 1-.43 1.2l-1.1 1.1a13.4 13.4 0 0 0 3.87 3.87l1.1-1.1a1.5 1.5 0 0 1 1.2-.43l2.23.19a1.5 1.5 0 0 1 1.24 1.02l.73 2.2a1.5 1.5 0 0 1-.34 1.57l-1.3 1.3a2.5 2.5 0 0 1-2.47.65c-2.58-.65-4.97-2.24-7.18-4.45-2.21-2.21-3.8-4.6-4.45-7.18a2.5 2.5 0 0 1 .65-2.47l1.3-1.3Z" />
-                              </svg>
-                            </a>
-                          ) : (
-                            <div className="ms-auto opacity-40 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 group-focus-within:opacity-100 group-focus-within:translate-x-0 transition-all duration-300">
-                              <svg className="w-5 h-5 text-brand-gold/60" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
-                            </div>
-                          )}
-                        </div>
-                        );
-                      })}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <p className="px-6 text-center text-sm text-white/60">
-                {"\u0633\u062a\u0638\u0647\u0631 \u0646\u0642\u0627\u0637 \u0627\u0644\u0628\u064a\u0639 \u0647\u0646\u0627 \u0639\u0646\u062f \u0625\u0636\u0627\u0641\u062a\u0647\u0627."}
-              </p>
-            )}
           </div>
         </section>
 
@@ -589,7 +460,6 @@ export default async function Home() {
       <FloatingQuickActions
         phoneHref="tel:+963947511335"
         instagramHref="https://www.instagram.com/26_alehsan"
-        partnersAnchorId="success-partners"
       />
       <ScrollReveal />
 

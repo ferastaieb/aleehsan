@@ -33,7 +33,17 @@ export type GalleryItem = {
   position: number;
 };
 
-export type DetailKind = "income" | "expense" | "in-kind";
+export type Product = {
+  id: number;
+  name: string;
+  description: string;
+  image_url: string;
+  price: number;
+  sold: number;
+  position: number;
+};
+
+export type DetailKind = "income" | "donation" | "expense" | "in-kind";
 
 export type DetailEntry = {
   id: number;
@@ -47,4 +57,5 @@ export type Store = {
   settings: Settings;
   stories: Story[];
   gallery: GalleryItem[];
+  products: Product[];
 };
