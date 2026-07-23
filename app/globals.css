@@ -1,7 +1,9 @@
 @import "tailwindcss";
 
 :root {
-  color-scheme: light;
+  /* "only light" opts out of Chrome's Auto Dark Theme, which was force-
+     darkening the ivory sections on Android and wrecking contrast. */
+  color-scheme: only light;
   --brand-dark: #0b2416;
   --brand-ink: #102718;
   --brand-lime: #c9f25c;
@@ -63,10 +65,10 @@ a {
 /* --- Utilities --- */
 
 .glass-card {
-  background: linear-gradient(150deg, rgba(255, 255, 255, 0.78) 0%, rgba(248, 246, 242, 0.62) 100%);
+  background: linear-gradient(150deg, rgba(255, 255, 255, 0.94) 0%, rgba(248, 246, 242, 0.88) 100%);
   backdrop-filter: blur(16px) saturate(1.15);
   -webkit-backdrop-filter: blur(16px) saturate(1.15);
-  border: 1px solid rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.7);
   box-shadow:
     0 1px 0 0 rgba(255, 255, 255, 0.6) inset,
     0 10px 30px -18px rgba(11, 36, 22, 0.28),

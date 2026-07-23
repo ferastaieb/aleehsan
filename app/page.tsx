@@ -21,7 +21,7 @@ function StatCard({ label, value, icon }: StatCardProps) {
       <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-brand-lime/30 to-brand-lime/10 text-brand-dark ring-1 ring-brand-lime/30 shadow-[0_4px_12px_-6px_rgba(201,242,92,0.7)]">
         {icon}
       </div>
-      <p className="mt-4 text-xs font-medium tracking-wide text-brand-dark/55">{label}</p>
+      <p className="mt-4 text-xs font-medium tracking-wide text-brand-dark/70">{label}</p>
       <p className="mt-1 font-display text-[1.7rem] font-bold leading-snug tracking-tight text-brand-dark tabular-nums">
         {value}
       </p>
@@ -130,17 +130,8 @@ export default async function Home() {
   const biggestDonationText =
     biggestDonation === null ? "\u0644\u0627 \u062a\u0648\u062c\u062f \u0628\u064a\u0627\u0646\u0627\u062a" : formatMoney(biggestDonation);
 
+  // Product figures (price, pieces sold) live on /products only.
   const stats = [
-    {
-      label: "\u0627\u0644\u0623\u0642\u0631\u0627\u0635 \u0627\u0644\u0645\u064f\u0628\u0627\u0639\u0629",
-      value: formatter.format(settings.disks_sold),
-      icon: (
-        <svg fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M4 11h16M4 11l4-4m-4 4l4 4m6-11v16" />
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a2.25 2.25 0 110-4.5 2.25 2.25 0 010 4.5zM12 8.75a2.25 2.25 0 012.25 2.25M6 19.5h12a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25H6A2.25 2.25 0 003.75 8.25v9A2.25 2.25 0 006 19.5z" />
-        </svg>
-      ),
-    },
     {
       label: "\u0627\u0644\u0639\u0627\u0626\u0644\u0627\u062a \u0627\u0644\u0645\u0633\u062a\u0641\u064a\u062f\u0629",
       value: formatter.format(settings.families_supported),
@@ -229,18 +220,14 @@ export default async function Home() {
             className="mt-10 flex w-full flex-col gap-4 sm:flex-row sm:justify-center animate-reveal-up"
             style={{ animationDelay: "600ms" }}
           >
-            <div className="grid grid-cols-3 gap-2 w-full max-w-lg mx-auto md:max-w-2xl">
-              <div className="rounded-xl bg-white/5 p-3 backdrop-blur-sm border border-white/5 card-lift">
-                <div className="text-brand-lime font-bold text-lg">{formatMoney(settings.base_price)}</div>
-                <div className="text-[10px] text-white/50">{"\u0633\u0639\u0631 \u0627\u0644\u0642\u0631\u0635"}</div>
-              </div>
+            <div className="grid grid-cols-2 gap-2 w-full max-w-sm mx-auto md:max-w-lg">
               <div className="rounded-xl bg-white/5 p-3 backdrop-blur-sm border border-white/5 card-lift">
                 <div className="text-brand-gold font-bold text-lg">100%</div>
-                <div className="text-[10px] text-white/50">{"\u0644\u0644\u0645\u0634\u0627\u0631\u064a\u0639"}</div>
+                <div className="text-[10px] text-white/75">{"\u0644\u0644\u0645\u0634\u0627\u0631\u064a\u0639"}</div>
               </div>
               <div className="rounded-xl bg-white/5 p-3 backdrop-blur-sm border border-white/5 card-lift">
                 <div className="text-white font-bold text-lg">{"\u0627\u062e\u062a\u064a\u0627\u0631\u064a"}</div>
-                <div className="text-[10px] text-white/50">{"\u062f\u0639\u0645 \u0625\u0636\u0627\u0641\u064a"}</div>
+                <div className="text-[10px] text-white/75">{"\u062f\u0639\u0645 \u0625\u0636\u0627\u0641\u064a"}</div>
               </div>
             </div>
           </div>
@@ -343,16 +330,6 @@ export default async function Home() {
             <div className="space-y-6 relative z-10">
               <div>
                 <div className="flex justify-between text-sm mb-2">
-                  <span className="font-medium">{"\u0633\u0639\u0631 \u0627\u0644\u0642\u0631\u0635"}</span>
-                  <span className="font-display font-bold tabular-nums text-brand-dark">{formatMoney(settings.base_price)}</span>
-                </div>
-                <div className="h-2.5 w-full bg-brand-dark/[0.06] rounded-full overflow-hidden shadow-[inset_0_1px_2px_rgba(11,36,22,0.12)]">
-                  <div className="h-full w-[20%] rounded-full bg-gradient-to-l from-brand-dark to-brand-dark/70" />
-                </div>
-              </div>
-
-              <div>
-                <div className="flex justify-between text-sm mb-2">
                   <span className="font-medium">{"\u0627\u0644\u0631\u0635\u064a\u062f"}</span>
                   <span className="font-display font-bold tabular-nums text-brand-dark">{formatMoney(settings.total_surplus)}</span>
                 </div>
@@ -386,6 +363,13 @@ export default async function Home() {
               >
                 {"\u062a\u0641\u0627\u0635\u064a\u0644 \u0627\u0644\u062e\u0627\u0631\u062c \u0648\u0627\u0644\u0645\u0635\u0631\u0648\u0641\u0627\u062a"}
                 <svg className="w-4 h-4 rtl:rotate-180 transition-transform motion-safe:group-hover/details:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+              </a>
+              <a
+                href="/products"
+                className="group/products inline-flex items-center gap-2 rounded-lg text-sm font-bold text-brand-dark transition-colors hover:text-brand-lime"
+              >
+                {"\u0627\u0644\u0645\u0646\u062a\u062c\u0627\u062a \u0648\u0627\u0644\u0623\u0633\u0639\u0627\u0631"}
+                <svg className="w-4 h-4 rtl:rotate-180 transition-transform motion-safe:group-hover/products:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
               </a>
             </div>
           </div>
