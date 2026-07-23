@@ -96,10 +96,10 @@ export default function SiteNav() {
                 key={item.href}
                 href={item.href}
                 aria-current={active ? "page" : undefined}
-                className={`flex flex-col items-center gap-1 px-0.5 py-1 text-[10px] font-medium leading-none transition-colors md:flex-row md:gap-2 md:rounded-full md:px-4 md:py-2 md:text-sm md:leading-normal ${
+                className={`flex flex-col items-center gap-1 px-0.5 py-1 text-[11px] font-medium leading-none transition-colors md:flex-row md:gap-2 md:rounded-full md:px-4 md:py-2 md:text-sm md:leading-normal ${
                   active
                     ? "text-brand-lime md:bg-brand-lime/10"
-                    : "text-white/60 hover:text-white"
+                    : "text-white/70 hover:text-white"
                 }`}
               >
                 <span

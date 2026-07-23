@@ -13,9 +13,23 @@ type StatCardProps = {
   label: string;
   value: string;
   icon: ReactNode;
+  compact?: boolean;
 };
 
-function StatCard({ label, value, icon }: StatCardProps) {
+function StatCard({ label, value, icon, compact = false }: StatCardProps) {
+  if (compact) {
+    return (
+      <div className="glass-card flex flex-col items-center rounded-2xl border-transparent p-3 text-center">
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-brand-lime/30 to-brand-lime/10 text-brand-dark ring-1 ring-brand-lime/30">
+          {icon}
+        </div>
+        <p className="mt-2 text-[10px] font-medium leading-tight text-brand-dark/70">{label}</p>
+        <p className="mt-1 font-display text-xl font-bold leading-snug tracking-tight text-brand-dark tabular-nums">
+          {value}
+        </p>
+      </div>
+    );
+  }
   return (
     <div className="glass-card flex min-w-[160px] flex-col rounded-2xl border-transparent p-5 transition-transform motion-safe:hover:-translate-y-1 focus-within:-translate-y-1 motion-reduce:transform-none">
       <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-brand-lime/30 to-brand-lime/10 text-brand-dark ring-1 ring-brand-lime/30 shadow-[0_4px_12px_-6px_rgba(201,242,92,0.7)]">
@@ -234,10 +248,17 @@ export default async function Home() {
         </div>
       </header>
 
-      <main className="relative z-20 -mt-10 px-4 pb-20 md:px-8">
-        {/* --- STATS SCROLLER (MARQUEE) --- */}
+      {/* No hero overlap on phones: the marquee fades smeared white over
+          the dark hero and the cards were clipped right at the fold. */}
+      <main className="relative z-20 mt-0 px-4 pb-20 md:-mt-10 md:px-8">
+        {/* --- STATS: static grid on phones, marquee on md+ --- */}
         <section className="mx-auto max-w-7xl py-4">
-          <div className="slider-marquee slider-marquee--stats" dir="ltr">
+          <div className="grid grid-cols-3 gap-2 pt-6 md:hidden">
+            {stats.map((stat) => (
+              <StatCard key={`stat-mobile-${stat.label}`} {...stat} compact />
+            ))}
+          </div>
+          <div className="slider-marquee slider-marquee--stats hidden md:block" dir="ltr">
             <div className="slider-marquee__fade slider-marquee__fade--left" />
             <div className="slider-marquee__fade slider-marquee__fade--right" />
             <div className="slider-marquee__track">
