@@ -60,6 +60,13 @@ export default async function PartnersPage() {
       .filter((point) => point.name.length > 0)
     : [];
 
+  // Stopped points (note contains متوقف) go to the end, dimmed.
+  const isStopped = (point: SalesPoint) =>
+    point.note !== null && point.note.includes("متوقف");
+  const orderedPoints = [...salesPoints].sort(
+    (first, second) => Number(isStopped(first)) - Number(isStopped(second)),
+  );
+
   const getPartnerLabel = (index: number) => {
     const ordinal = arabicOrdinals[index];
     if (ordinal) return `الشريك ${ordinal}`;
@@ -88,12 +95,16 @@ export default async function PartnersPage() {
           </div>
 
           <div className="relative z-10 px-6">
-            {salesPoints.length > 0 ? (
+            {orderedPoints.length > 0 ? (
               <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-                {salesPoints.map((point, index) => (
+                {orderedPoints.map((point, index) => (
                   <div
                     key={`${point.name}-${index}`}
-                    className="group relative flex items-center gap-5 rounded-2xl border border-white/5 bg-white/[0.03] p-5 backdrop-blur-sm transition-all duration-500 hover:border-brand-gold/30 hover:bg-white/[0.08] hover:shadow-[0_0_30px_rgba(217,182,90,0.1)] focus-within:border-brand-gold/30 focus-within:bg-white/[0.08]"
+                    className={`group relative flex items-center gap-5 rounded-2xl border p-5 backdrop-blur-sm transition-all duration-500 ${
+                      isStopped(point)
+                        ? "border-white/[0.03] bg-black/20 opacity-60 saturate-50"
+                        : "border-white/5 bg-white/[0.03] hover:border-brand-gold/30 hover:bg-white/[0.08] hover:shadow-[0_0_30px_rgba(217,182,90,0.1)] focus-within:border-brand-gold/30 focus-within:bg-white/[0.08]"
+                    }`}
                   >
                     <div className="badge-foil flex h-14 w-14 shrink-0 items-center justify-center rounded-xl text-brand-gold font-display font-bold text-xl group-hover:scale-110 transition-transform duration-500">
                       {formatter.format(index + 1)}
@@ -102,7 +113,13 @@ export default async function PartnersPage() {
                       <span className="text-[10px] text-brand-gold/60 tracking-wider mb-1 font-medium">
                         {getPartnerLabel(index)}
                       </span>
-                      <span className="font-display font-bold text-white text-lg tracking-wide group-hover:text-brand-gold group-focus-within:text-brand-gold transition-colors">
+                      <span
+                        className={`font-display font-bold text-lg tracking-wide transition-colors ${
+                          isStopped(point)
+                            ? "text-white/70"
+                            : "text-white group-hover:text-brand-gold group-focus-within:text-brand-gold"
+                        }`}
+                      >
                         {point.name}
                       </span>
                       {point.note ? (
