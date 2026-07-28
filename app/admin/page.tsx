@@ -508,9 +508,11 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
             <div className="mb-6">
               <h2 className="font-display text-xl text-brand-dark">نقاط البيع</h2>
               <p className="text-sm text-brand-dark/60">
-                أضف كل نقطة بيع في سطر مستقل لتظهر للزوار في قسم نقاط البيع.
+                أضف كل نقطة بيع في سطر مستقل لتظهر للزوار في صفحة نقاط البيع.
                 لإضافة رقم هاتف للاتصال المباشر، اكتب علامة | بعد اسم النقطة ثم
-                الرقم. مثال: دمشق - سوق الحميدية | 0947511335
+                الرقم. مثال: دمشق - سوق الحميدية | 0947511335. ولإظهار ملاحظة
+                على البطاقة (مثل: متوقف حالياً) اكتبها بين قوسين في نهاية
+                السطر: ماركت البشير | 0912345678 (متوقف حالياً)
               </p>
             </div>
             <label className="flex flex-col gap-2 text-sm">

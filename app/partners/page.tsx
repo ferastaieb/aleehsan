@@ -2,18 +2,31 @@ import { getDashboardData } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
 
-type SalesPoint = { name: string; phone: string | null };
+type SalesPoint = { name: string; phone: string | null; note: string | null };
+
+// A trailing "(...)" anywhere on the line is a status note, e.g.
+// "ماركت البشير | 0912345678 (متوقف حالياً)" — shown as a badge.
+function extractNote(text: string): { value: string; note: string | null } {
+  const match = text.match(/^(.*?)\s*[(（]([^()（）]+)[)）]\s*$/);
+  if (!match) {
+    return { value: text.trim(), note: null };
+  }
+  return { value: match[1].trim(), note: match[2].trim() || null };
+}
 
 function parseSalesPoint(line: string): SalesPoint {
   const separatorIndex = line.indexOf("|");
   if (separatorIndex === -1) {
-    return { name: line.trim(), phone: null };
+    const { value: name, note } = extractNote(line);
+    return { name, phone: null, note };
   }
-  const name = line.slice(0, separatorIndex).trim();
-  const rawPhone = line.slice(separatorIndex + 1).trim();
+  const namePart = extractNote(line.slice(0, separatorIndex));
+  const phonePart = extractNote(line.slice(separatorIndex + 1));
+  const name = namePart.value || phonePart.value;
   return {
-    name: name || rawPhone,
-    phone: rawPhone || null,
+    name,
+    phone: phonePart.value || null,
+    note: phonePart.note ?? namePart.note,
   };
 }
 
@@ -92,6 +105,12 @@ export default async function PartnersPage() {
                       <span className="font-display font-bold text-white text-lg tracking-wide group-hover:text-brand-gold group-focus-within:text-brand-gold transition-colors">
                         {point.name}
                       </span>
+                      {point.note ? (
+                        <span className="mt-1.5 inline-flex w-fit items-center gap-1.5 rounded-full border border-brand-gold/40 bg-brand-gold/15 px-2.5 py-0.5 text-[11px] font-semibold text-brand-gold">
+                          <span className="h-1.5 w-1.5 rounded-full bg-brand-gold/80" aria-hidden="true" />
+                          {point.note}
+                        </span>
+                      ) : null}
                     </div>
 
                     {point.phone ? (
